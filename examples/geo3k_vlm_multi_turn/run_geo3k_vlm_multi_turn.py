@@ -1,9 +1,9 @@
 import os
 
-import miles.utils.misc as U
-from miles.utils.external_utils.command_utils import execute_train
+import slime.utils.misc as U
+from slime.utils.external_utils.command_utils import execute_train
 
-MODEL_NAME = os.environ.get("MILES_SCRIPT_MODEL_NAME", "Qwen3-VL-2B-Instruct")
+MODEL_NAME = os.environ.get("SLIME_SCRIPT_MODEL_NAME", "Qwen3-VL-2B-Instruct")
 assert MODEL_NAME in {
     "Qwen3-VL-2B-Instruct",
     "Qwen3-VL-4B-Instruct",
@@ -13,10 +13,10 @@ assert MODEL_NAME in {
     "Qwen3-VL-8B-Thinking",
 }
 
-NUM_GPUS = int(os.environ.get("MILES_SCRIPT_NUM_GPUS", "4"))
-EXTERNAL_RAY = int(os.environ.get("MILES_SCRIPT_EXTERNAL_RAY", "0"))
-TRAIN_BACKEND = os.environ.get("MILES_SCRIPT_TRAIN_BACKEND", "fsdp").lower()
-assert TRAIN_BACKEND in {"fsdp", "megatron"}
+NUM_GPUS = int(os.environ.get("SLIME_SCRIPT_NUM_GPUS", "4"))
+EXTERNAL_RAY = int(os.environ.get("SLIME_SCRIPT_EXTERNAL_RAY", "0"))
+TRAIN_BACKEND = os.environ.get("SLIME_SCRIPT_TRAIN_BACKEND", "megatron").lower()
+assert TRAIN_BACKEND in {"megatron"}
 
 DATASET_NAME = "VeraIsHere/geo3k_imgurl_processed"
 DATA_ROOT = "/root/datasets/geo3k_imgurl_processed"
@@ -45,7 +45,7 @@ def execute():
     wandb_args = (
         (
             "--use-wandb "
-            "--wandb-project miles-dev "
+            "--wandb-project slime-dev "
             "--wandb-group geo3k_vlm_multi_turn "
             f"--wandb-key '{wandb_api_key}' "
         )
@@ -104,13 +104,6 @@ def execute():
         f"--sglang-cuda-graph-bs {' '.join(map(str, [1, 2, 4, 8] + list(range(16, 257, 8))))} "
     )
 
-    fsdp_args = (
-        "--train-backend fsdp "
-        "--gradient-checkpointing "
-        "--sglang-attention-backend fa3 "
-        "--attn-implementation flash_attention_3 "
-        "--update-weight-buffer-size 536870912 "
-    )
 
     megatron_args = (
         "--train-backend megatron "
@@ -142,9 +135,6 @@ def execute():
         backend_args = megatron_args
         megatron_model_type = get_megatron_model_type(MODEL_NAME)
         os.environ["MODEL_ARGS_ROTARY_BASE"] = "5000000"
-    else:
-        backend_args = fsdp_args
-        megatron_model_type = None
 
     train_args = (
         f"{ckpt_args} "
