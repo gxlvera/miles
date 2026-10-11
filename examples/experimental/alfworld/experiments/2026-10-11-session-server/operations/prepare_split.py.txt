@@ -1,0 +1,32 @@
+import hashlib
+import json
+import random
+from collections import Counter
+from pathlib import Path
+
+src = Path('/workspace/datasets/alfworld/train.jsonl')
+rows = [json.loads(line) for line in src.read_text().splitlines()]
+print('ROW_SCHEMA', rows[0])
+indices = list(range(len(rows)))
+random.Random(20261011).shuffle(indices)
+eval_count = round(len(rows) * 0.30)
+eval_indices = set(indices[:eval_count])
+dest = Path('/workspace/datasets/alfworld-70-30/alfworld')
+dest.mkdir(parents=True, exist_ok=True)
+manifest = {'seed': 20261011, 'source': str(src), 'source_sha256': hashlib.sha256(src.read_bytes()).hexdigest(), 'eval_fraction': 0.30}
+members = {}
+for name, wanted in [('train', False), ('eval', True)]:
+    subset = [row for i, row in enumerate(rows) if (i in eval_indices) == wanted]
+    content = ''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in subset)
+    path = dest / (name + '.jsonl')
+    if path.exists():
+        assert path.read_text() == content, 'Refusing to change an existing split'
+    else:
+        path.write_text(content)
+    members[name] = {json.dumps(row['metadata'], sort_keys=True) for row in subset}
+    manifest[name] = {'path': str(path), 'count': len(subset), 'sha256': hashlib.sha256(content.encode()).hexdigest(), 'source_indices': [i for i in range(len(rows)) if (i in eval_indices) == wanted]}
+assert not (members['train'] & members['eval'])
+assert len(members['train']) + len(members['eval']) == len(rows)
+(dest / 'split_manifest.json').write_text(json.dumps(manifest, indent=2))
+print(json.dumps({k: {a:b for a,b in v.items() if a != 'source_indices'} if isinstance(v,dict) else v for k,v in manifest.items()}, indent=2))
+print('CHECKPOINT', Path('/workspace/models/Qwen3.5-4B_torch_dist/latest_checkpointed_iteration.txt').read_text())

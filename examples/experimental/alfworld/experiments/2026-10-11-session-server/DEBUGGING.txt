@@ -1,0 +1,189 @@
+ALFWorld / Miles session-server experiment — engineering record
+Status: all 50 optimizer updates and the full final evaluation completed.
+Ray job SUCCEEDED. Final results were cross-checked against raw episodes, native
+logs, token diagnostics and W&B history. See closeout_status.json for Git/release evidence.
+
+Scope and provenance
+--------------------
+Fork: https://github.com/gxlvera/miles
+Starting commit: 99b756e62dc9cd42c6e4d58cebaeedb6ee3f7467
+Requested delivery branch: aflworld (spelling requested by the user).
+Model: Qwen/Qwen3.5-4B. Native Session Server v2, append-only merged episodes.
+W&B: https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/6067854d
+Run: alfworld_session_server; ID: 6067854d.
+Image: radixark/miles@sha256:7504d215ce7ef7212924921d70124dee00f1ffd2479afcdc3e592b57ef85b9c3
+Modal: xiaoleg/main; app miles-dev; sandbox dev (sb-qKaDixw8FY32QYQarDm3Bs).
+Persistent Volume: h100-dev-files, mounted at /workspace.
+Run path: /workspace/experiments/alfworld/alfworld_session_server.
+
+Change trace
+------------
+1. Replaced upstream checkout with the requested fork. Retained the prior
+   checkout as /workspace/miles-upstream-backup-20261011. Python path points to
+   /workspace/miles ahead of image-bundled /root/miles.
+2. Prepared ALFWorld games and converted Qwen3.5-4B to Megatron distributed
+   checkpoint format. Exact environment/setup logs remain with the run.
+3. Used a fixed seed (20261011) to reserve 30% of the 3553 source games:
+   2487 training, 1066 evaluation. The manifest records source indices and
+   SHA-256 hashes. No shared game files. This is a random train-game holdout,
+   NOT the official valid_unseen split and NOT guaranteed room-disjoint.
+4. Explicitly selected model parsers through the repository's existing SSOT
+   resolver: qwen3 reasoning and qwen3_coder tool calls for the qwen35 TITO
+   model. Updated the launcher snapshot. No shared parser implementation fork.
+5. Added read-only token diagnostics derived from stored token IDs and the
+   response loss mask. No decode/re-encode, no training sample modifications.
+   Assistant counts are loss-mask ones. Non-assistant counts include initial
+   system/user/tool-schema tokens and later observations/chat delimiters.
+   A final environment reply not fed to the model is excluded.
+6. Completed the full initial eval before any optimizer update. Preserved
+   baseline logs/dumps. Switched from the initial colocated smoke configuration
+   to the user-requested 4-training/4-inference async topology.
+7. Added async_train to the reusable launcher. Standard train_async.py runs one
+   batch ahead, drains that batch before weight publication, and performs one
+   optimizer update per batch. 4 prompts x 8 episodes = 32 episode batch;
+   TP4/DP1 training, four one-GPU inference engines; update interval 1;
+   use_rollout_logprobs=True, fully_async=False, colocate=False.
+8. Verified the first async batches: 32 episodes, one weight version per
+   episode, valid behavior-logprob lengths, lag 0 then 1 step. Version counters
+   restart on process restart, so resumed-run audits need an iteration offset.
+9. On user request, eval logging was changed to global turn-weighted means
+   only. Training diagnostics can still include turn positions. Raw per-turn
+   eval rows remain in Volume JSON; they are not emitted as W&B metrics.
+   The W&B workspace hide regex ^eval/.*/tokens/turn_[0-9]+/ hides 150 existing
+   per-position charts without deleting recorded history.
+10. Prepared benchmark_metrics.py for a later per-turn/merge comparison.
+    It counts samples per source prompt and per episode, full unpadded sequence
+    tokens, trainable assistant tokens and repeated history within an episode.
+    This comparison was canceled by the user before either GPU benchmark ran.
+    The tested code is retained as work product; no benchmark result is claimed.
+11. Final user instruction: finish 50 steps and eval, preserve code/logs/weights/
+    debug records, commit and push branch aflworld, then release the 8 H100s.
+    This supersedes the earlier conditional continuation to 100 steps and the
+    two planned 5-step comparisons.
+
+Incidents, diagnosis and resolution
+-----------------------------------
+A. Early tool-parser failure: the first attempted evaluation did not have the
+   correct explicit reasoning/tool-call parser pair. That attempt is archived
+   as attempt-1-invalid-tool-parser.log and is excluded from the baseline.
+   The SSOT parser flags above corrected collection; native session requests
+   and terminal environment rewards were verified afterward.
+B. Initial eval upload at topology transition: token metrics had arrived but
+   the standard eval dictionary was not yet visible after the old job stopped.
+   Replayed the exact persisted standard eval dictionary once into the same
+   W&B run, preserving eval/step=0. No recomputed or fabricated scores.
+C. W&B URL: Forge returned Run not found when the project separator '&' was
+   URL-encoded as %26. User-facing links retain the literal '&'. SDK-generated
+   encoded redirects should not be used as proof a run is missing.
+D. W&B summary can lag history / reflect a stale value in this shared run.
+   Verified eval with scan_history instead. Step-25 standard and custom eval
+   records exist in history (_step 131 and 130); do not replay them simply
+   because summary still shows the baseline.
+E. Live logging update: editing the file alone does not reload a cached Python
+   module. Retrieved the existing RolloutExecutor handle through the named
+   RayWorkerManager's get_worker_infos/get_actor_handle APIs, and used Ray's
+   DeveloperAPI __ray_call__ to reload only the diagnostics module. Verified
+   in actor pid61026 at rollout_id8, without restarting training.
+   A preliminary auxiliary-driver attempt to call core_worker.get_actor_handle
+   directly on an unregistered ID aborted that auxiliary process; it did not
+   stop the training job. Do not use that private shortcut.
+F. Environment collection repeatedly timed out on git diff after 10 seconds
+   on the Volume. Tracebacks belong to optional provenance collection, not the
+   optimizer or eval. Retained logs and checked actual job/step progress.
+G. One inference worker's startup /freeze_gc request raced its HTTP listener
+   and got ConnectionRefused. Subsequent health and generation calls returned
+   200, all four inference engines served requests, and training proceeded.
+H. TileLang dk_fragment warning during first backward kernel compilation:
+   inspected flash_qla/.../hopper/fused_bwd.py. The read is guarded by i_s>0;
+   a previous loop iteration initializes the fragment via GEMM clear_accum.
+   No library patch or disabling of compiler checks was made. Subsequent
+   optimizer outcomes were NORMAL with finite loss and gradient norms.
+I. GPU health: volatile and aggregate uncorrectable ECC counters were zero.
+   GPU6 had two historical corrected SRAM errors, with current volatile count
+   zero. The W&B 'Uncorrected Memory Errors' chart title alone was not evidence
+   of an error. No device-repair flag was observed during inspection.
+J. Training rewards fluctuated between batches: reward = float(env.infos['won']),
+   so raw_reward is binary episode success averaged over 4 prompt groups x 8
+   trajectories. Audited the first 416 episodes against terminal metadata and
+   W&B; all matched. Their combined success was 238/416=57.21%. A single batch
+   of 27/32=84.375% is not a fixed-eval result.
+K. Persistence and capacity: a step-25 full distributed checkpoint occupies
+   about 58.9 GB, while the Mac has roughly 12 GiB free. The user explicitly
+   permits cloud checkpoint storage. Keep weights and all raw run artifacts on
+   the persistent Volume, verify them independently of the Sandbox, and make
+   local backups of lightweight code/logs/results/manifests. Do not delete the
+   Volume when releasing the GPU container.
+
+Evaluation evidence currently available
+---------------------------------------
+Same fixed 1066-game holdout; temperature 0; one trajectory per game.
+Initial: 465/1066 = 43.621013%; mean turns 23.000938.
+25 updates: 713/1066 = 66.885553%; +23.26454 percentage points;
+mean turns 18.191370. No missing rewards. Step-25 weights version 26;
+no mixed-version eval episodes. Six episodes were output-length-truncated; the special-token-count mismatch
+rate was also 6/1066 (matching counts alone do not prove identical episodes).
+Non-assistant-text,
+assistant-text and special-token-type mismatch rates were all zero.
+50 updates: 869/1066 = 81.519700%;
++37.898687 percentage points vs initial,
++14.634146 points vs update 25.
+Mean turns 15.281426;
+assistant tokens/turn 87.547391;
+new non-assistant tokens/turn 309.518171.
+Native indexing is zero-based: optimizer update 25 -> checkpoint iter_0000024
+and eval/step24. Update 50 -> iter_0000049 and eval/step49 (verified).
+
+Validation and known limitations
+--------------------------------
+- 29 async-driver/ALFWorld tests passed after the topology change.
+- Two focused ALFWorld launcher tests passed; snapshot updated and reviewed.
+- Full required launcher suites: 74 failed, 508 passed, 14 errors. The exact
+  failure/error IDs matched a pristine checkout at the starting fork commit.
+  No additional failing IDs; unrelated model launcher failures were not fixed.
+- Four mean-only eval logging tests passed.
+- Ten benchmark accounting/native per-turn tests passed. No GPU baseline ran.
+- Initial kernel compile time is included in early training timing. Native
+  perf/step_time is train_wait_time + train_time; async rollout and training
+  overlap, so adding their independent durations double-counts wall time.
+- This is one training seed and a custom holdout, not an official benchmark
+  leaderboard result. Do not infer generalization from training batch reward.
+
+Archive conventions
+-------------------
+Recorded operational scripts may be saved as .py.txt snapshots to preserve the
+exact environment-specific commands, including fixed paths. They are execution
+provenance, not additional reusable launchers. Use the maintained launcher for
+new experiments. Credentials are injected separately; no credentials belong in
+this repository or the public archive. Logs are scanned/redacted before local
+or Git publication. Large checkpoints and rollout dumps stay on the Volume;
+file lists, sizes, hashes and recovery instructions are committed instead.
+
+Final shutdown and tracking recovery
+------------------------------------
+The final 1066-game evaluation finished at 2026-10-11 08:51:47 UTC and the
+Ray job exited SUCCEEDED. Four episodes were output-length-truncated. Native
+session mismatch diagnostics reported 6/1066 total: 4 special-token-count and
+2 assistant-text mismatches. All final eval episodes used weight version 51;
+no mixed-version episode was observed. These diagnostics are retained as a
+limitation rather than silently discarded. The score counts environment wins.
+
+The W&B run finished without final eval49 history records, although native logs
+and raw data were complete. Likely cause: rollout actor tracking buffers were
+not flushed before actor termination; this root cause was not proven. Exact
+native metrics and mean-only token metrics were replayed once to the SAME run
+using resume=must, after checking the records were absent and cross-checking
+1066 rewards. SDK finish completed; subsequent API history verification passed.
+No generated or invented metric was used. See final_wandb_recovery.json and
+operations/recover_final_metrics.py.txt. Future runs should audit worker tracking
+flush/finish at shutdown; no untested core lifecycle patch was made during
+closeout. W&B SDK directories are also retained under /workspace/wandb/wandb
+on the same persistent Volume. Termination cleanup emitted SIGTERM/-15 and
+SIGKILL escalation for idle inference subprocesses after evaluation, not an
+evaluation failure.
+
+Both full distributed checkpoints contain 117837870411 bytes across 40 hashed
+files. Every file was checked through the independent Volume API for published
+size; 30 small files were also read back and SHA-256 checked. Large shards were
+fully hashed in the Sandbox but were not downloaded to the capacity-limited Mac.
+Per-turn GPU comparisons were canceled and never executed. Training stopped at
+50 updates as requested.

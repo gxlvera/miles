@@ -1,0 +1,92 @@
+"""Create or reuse a Miles development Sandbox with eight H100 GPUs."""
+
+import modal
+from configure_wandb import SECRET_NAME, WANDB_ENV, configure_sandbox
+from miles_image import get_image
+
+APP_NAME = "miles-dev"
+SANDBOX_NAME = "dev"
+GPU_COUNT = 8
+
+
+def main():
+    with modal.enable_output():
+        app = modal.App.lookup(APP_NAME, create_if_missing=True)
+
+        try:
+            sb = modal.Sandbox.from_name(APP_NAME, SANDBOX_NAME)
+            print("Using the existing development Sandbox.")
+        except modal.exception.NotFoundError:
+            volume = modal.Volume.from_name(
+                "h100-dev-files", create_if_missing=True
+            )
+            image = get_image()
+            sb = modal.Sandbox.create(
+                app=app,
+                name=SANDBOX_NAME,
+                image=image,
+                gpu=f"H100:{GPU_COUNT}",
+                cpu=4,
+                memory=32768,
+                timeout=24 * 60 * 60,
+                runtime="gvisor",
+                volumes={"/workspace": volume},
+                workdir="/workspace",
+                env={"HF_HOME": "/workspace/.cache/huggingface", **WANDB_ENV},
+                secrets=[modal.Secret.from_name(SECRET_NAME)],
+            )
+            print(f"Created the development Sandbox with {GPU_COUNT} H100 GPUs.")
+
+    # Keep the user's fork on the persistent Volume across container rebuilds.
+    setup = sb.exec(
+        "bash", "-c",
+        "set -e; "
+        "if [ ! -e /workspace/miles ]; then "
+        "git clone https://github.com/gxlvera/miles.git /workspace/miles; fi; "
+        "cd /workspace/miles; "
+        "python -m pip install --no-deps --no-build-isolation -e .; "
+        "python -m pip install -r examples/experimental/alfworld/requirements.txt",
+        timeout=1200,
+    )
+    print(setup.stdout.read())
+    setup_error = setup.stderr.read()
+    if setup.wait() != 0:
+        raise SystemExit(f"Miles checkout setup failed in {sb.object_id}: {setup_error}")
+
+    # Modal's /root PYTHONPATH entry can shadow Miles' editable namespace package.
+    # Prioritize the persistent checkout for shells, Ray workers, and torchrun.
+    setup_path = sb.exec(
+        "python", "-c",
+        "from pathlib import Path; import sysconfig; "
+        "(Path(sysconfig.get_path('purelib')) / '000_miles_workspace.pth').write_text("
+        "\"import sys; sys.path.insert(0, '/workspace/miles')\\n\")",
+        timeout=30,
+    )
+    if setup_path.wait() != 0:
+        raise SystemExit(f"Miles Python path setup failed: {setup_path.stderr.read()}")
+
+    configure_sandbox(sb)
+
+    probe = sb.exec(
+        "nvidia-smi", "--query-gpu=name", "--format=csv,noheader", timeout=60
+    )
+    gpu_names = probe.stdout.read().strip().splitlines()
+    probe_error = probe.stderr.read()
+    if probe.wait() != 0:
+        raise SystemExit(f"Could not verify GPUs in {sb.object_id}: {probe_error}")
+    if len(gpu_names) != GPU_COUNT:
+        raise SystemExit(
+            f"Sandbox {sb.object_id} has {len(gpu_names)} GPUs; expected {GPU_COUNT}. "
+            "Save your work, run stop_dev.py, then run start_dev.py again."
+        )
+
+    print(f"\nSandbox ID: {sb.object_id}")
+    print(f"Connect: modal shell {sb.object_id}")
+    print(f"Verified GPUs: {len(gpu_names)} ({', '.join(sorted(set(gpu_names)))})")
+    print("Persistent files: /workspace")
+    print("Miles source: /workspace/miles")
+    print("GPU billing continues until termination or the 24-hour timeout.")
+
+
+if __name__ == "__main__":
+    main()

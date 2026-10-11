@@ -1,0 +1,27 @@
+"""Recover only missing final eval metrics from persisted, cross-checked evidence."""
+import ast,json,re
+from pathlib import Path
+import torch,wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+token=json.loads((root/'token_metrics/eval_alfworld_holdout30_tokens_000049.json').read_text())
+samples=torch.load(root/'dump_details/rollout_data/eval_49.pt',map_location='cpu',weights_only=False)['samples']
+assert len(samples)==1066
+assert all(s['reward'] in (0,1) and float(s['reward'])==float(s['metadata']['task_success']) for s in samples)
+score=sum(s['reward'] for s in samples)/1066
+lines=[re.sub(r'\x1b\[[0-9;]*m','',s) for s in (root/'train.log').read_text(errors='replace').splitlines() if ' - eval 49: ' in s]
+native=ast.literal_eval(lines[-1].split(' - eval 49: ',1)[1]); native['eval/step']=49
+assert abs(score-native['eval/alfworld_holdout30'])<1e-12
+assert abs(score-token['metrics']['episode/success_rate'])<1e-12
+custom={token['namespace']+'/'+k:v for k,v in token['metrics'].items()};custom['eval/step']=49
+api=wandb.Api(timeout=30);r=api.run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+pending=[]
+for record,key in [(custom,'eval/alfworld_holdout30/tokens/episode/success_rate'),(native,'eval/alfworld_holdout30')]:
+    history=list(r.scan_history(keys=['eval/step',key],page_size=100))
+    if not any(h['eval/step']==49 for h in history): pending.append(record)
+if pending:
+    run=wandb.init(entity=r.entity,project=r.project,id=r.id,name='alfworld_session_server',resume='must')
+    run.define_metric('eval/step');run.define_metric('eval/*',step_metric='eval/step')
+    for record in pending: run.log(record)
+    run.finish()
+report={'source':'Persisted native eval49 log and token_metrics JSON, independently cross-checked against 1066 raw episode rewards','successes':int(score*1066),'episodes':1066,'score':score,'recovered_records':len(pending),'reason':'Ray job succeeded and W&B run finished, but final eval49 native and mean-only metrics were absent from API history after shutdown; likely worker tracking buffer not flushed before actor termination.'}
+(root/'final_wandb_recovery.json').write_text(json.dumps(report,indent=2)); print(json.dumps(report))

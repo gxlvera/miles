@@ -1,0 +1,22 @@
+[
+  {
+    "rollout_id": 0,
+    "episodes": 32,
+    "weight_versions": [
+      1
+    ],
+    "policy_lag_steps_min": 0,
+    "policy_lag_steps_max": 0,
+    "valid_behavior_logprobs": true
+  },
+  {
+    "rollout_id": 1,
+    "episodes": 32,
+    "weight_versions": [
+      1
+    ],
+    "policy_lag_steps_min": 1,
+    "policy_lag_steps_max": 1,
+    "valid_behavior_logprobs": true
+  }
+]

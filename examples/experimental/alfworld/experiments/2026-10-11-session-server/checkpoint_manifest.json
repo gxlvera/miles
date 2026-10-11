@@ -1,0 +1,247 @@
+{
+  "latest_completed_checkpoint_index": 49,
+  "created_unix": 1791706931.2401295,
+  "total_bytes": 117837870411,
+  "files": [
+    {
+      "path": "checkpoints/iter_0000024/.metadata",
+      "bytes": 1937297,
+      "mtime_ns": 1791702143647854207,
+      "sha256": "e3fcbce750419eea11b189f871f30a351d3d754339aa2c042d57dca9475c052c"
+    },
+    {
+      "path": "checkpoints/iter_0000024/__0_0.distcp",
+      "bytes": 14724908875,
+      "mtime_ns": 1791702133413930375,
+      "sha256": "9c0e83d752ec181022adcaba7bd3a888f6e7797675259774b9afa3879eb1febf"
+    },
+    {
+      "path": "checkpoints/iter_0000024/__1_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791702133201248488,
+      "sha256": "38c1aabca0e9132d0e1f3de766fb5d74712bbf44bcbf9ffede508de0380fe364"
+    },
+    {
+      "path": "checkpoints/iter_0000024/__2_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791702133512295602,
+      "sha256": "b45b5995cf9cb75e61e6a201f863d2eb69eecde52f8f0207bcdd8b2eec54ccea"
+    },
+    {
+      "path": "checkpoints/iter_0000024/__3_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791702133495115418,
+      "sha256": "91a885ca47e68043c5fb131d05b3c79c86184113125f5f2fcfd00e7b802c38c0"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00000.jsonl",
+      "bytes": 1030139,
+      "mtime_ns": 1791702087877216206,
+      "sha256": "5f06854077369c0a5fdf89a8750bdfa309b6d700ba2dc0437a0f5699a4482341"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00001.jsonl",
+      "bytes": 979189,
+      "mtime_ns": 1791699394876913136,
+      "sha256": "a097438a4ad215fc91013fbb1c1e1c8f3b7db376a35b9b78969f9350cdf1aa3f"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00002.jsonl",
+      "bytes": 979189,
+      "mtime_ns": 1791699394627408336,
+      "sha256": "eba6b351aa9c8ad31aa6b2faae728f3e30c2a7139fc7a0cf85f5b4d37aaf1435"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00003.jsonl",
+      "bytes": 979189,
+      "mtime_ns": 1791699394946381798,
+      "sha256": "abf0507ede4e93165aece8aaddf967ae1e1c8353c012f59f2ce3990c15451289"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00004.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697098967379753,
+      "sha256": "c5bc7597de5b01411aedf38b7361290727552761fb01165a9e41ef2a3e9435df"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00005.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697093662503042,
+      "sha256": "ff531a8afcc330b8677b7fb6dedb704bebbb4f781ba3790b336e197a4f3115a2"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00006.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697086912978416,
+      "sha256": "968c731f90f1085e3867edb5b08273d0c9a0b48e2984d11a63533f05ef1665ab"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00007.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697091197048038,
+      "sha256": "ad4bfab4ccea5a1f42c4afd7881221b88e274eed1d8f2f13af09f5992d92c04d"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/inference_controller.jsonl",
+      "bytes": 1415949,
+      "mtime_ns": 1791699505185338568,
+      "sha256": "8de6f7f6c9e6608592e0a5dac87bc8875bf72c1fdd6e9168b75fa477f0d8f973"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/main.jsonl",
+      "bytes": 6119403,
+      "mtime_ns": 1791702071017602856,
+      "sha256": "82090b78257349fe6309564c110ae2eef6f9b365b6abfa83b63673e4f5518248"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/rollout_executor.jsonl",
+      "bytes": 1079315,
+      "mtime_ns": 1791702070144430768,
+      "sha256": "659c2ed6d5313c1612074b135530041188d9c492a27046327d8e431da319726a"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/trainer_controller_actor.jsonl",
+      "bytes": 674854,
+      "mtime_ns": 1791702087893087439,
+      "sha256": "4fdede5a0aa7d60681c8c97e9642ff3c6613cfd7d5228058d78595ee6592733c"
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/worker_manager.jsonl",
+      "bytes": 758996,
+      "mtime_ns": 1791699281858810669,
+      "sha256": "43c10b88311a6254f3d67bcd2df86c1648304b2ca812e5efabc8b2856b4c4986"
+    },
+    {
+      "path": "checkpoints/iter_0000024/metadata.json",
+      "bytes": 63,
+      "mtime_ns": 1791702143694215906,
+      "sha256": "56b32e2dfbc0255db319bddf6880c9dfd3475135ca8d5ace23b8a6a384ed63c6"
+    },
+    {
+      "path": "checkpoints/iter_0000049/.metadata",
+      "bytes": 1937297,
+      "mtime_ns": 1791706717257930355,
+      "sha256": "b66dee9f2fcab12452b3c772f346cd3ae00744937afaa4350f449d3f76e9cf21"
+    },
+    {
+      "path": "checkpoints/iter_0000049/__0_0.distcp",
+      "bytes": 14724908875,
+      "mtime_ns": 1791706716925931216,
+      "sha256": "e56c8fba567405c386a7eb7a6579df1df6c599587d5f1ecc70d3eb3000c2caae"
+    },
+    {
+      "path": "checkpoints/iter_0000049/__1_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791706716728068796,
+      "sha256": "b3a7a67968bb71758819bc9371cf72e87cca601292006d6e74cd84d4ce0b589e"
+    },
+    {
+      "path": "checkpoints/iter_0000049/__2_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791706716929309418,
+      "sha256": "dde44640ed5803fe29a534666e70efe22db273f9bd57c8c296655cf4ca329dc9"
+    },
+    {
+      "path": "checkpoints/iter_0000049/__3_0.distcp",
+      "bytes": 14724137964,
+      "mtime_ns": 1791706716984634931,
+      "sha256": "db5b19d547d2c6941dc767c7829d2513a6047c10bc101df953d6356300643d8a"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00000.jsonl",
+      "bytes": 1173590,
+      "mtime_ns": 1791706675594211389,
+      "sha256": "ecb29ddcbfc56e1fbcd50716bf32db1360cec9c84584e25baf49de4b7a2eb246"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00001.jsonl",
+      "bytes": 1072101,
+      "mtime_ns": 1791704356872594059,
+      "sha256": "c39ecb488e0349dcbb4a7e8a5f39918888c6ef120ee1fd5805751b19a6259272"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00002.jsonl",
+      "bytes": 1072101,
+      "mtime_ns": 1791704588986236347,
+      "sha256": "cca371eae8f4d133f35c17849b7b2cadf34d50b0cffb5df8846d7c726a21de52"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00003.jsonl",
+      "bytes": 1072101,
+      "mtime_ns": 1791704384390293092,
+      "sha256": "4154164de95f08a04b6492f75768ae14fd617281fd3a1074aacdd313b4f48c3f"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00004.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697098967379753,
+      "sha256": "c5bc7597de5b01411aedf38b7361290727552761fb01165a9e41ef2a3e9435df"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00005.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697093662503042,
+      "sha256": "ff531a8afcc330b8677b7fb6dedb704bebbb4f781ba3790b336e197a4f3115a2"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00006.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697086912978416,
+      "sha256": "968c731f90f1085e3867edb5b08273d0c9a0b48e2984d11a63533f05ef1665ab"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00007.jsonl",
+      "bytes": 653024,
+      "mtime_ns": 1791697091197048038,
+      "sha256": "ad4bfab4ccea5a1f42c4afd7881221b88e274eed1d8f2f13af09f5992d92c04d"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/inference_controller.jsonl",
+      "bytes": 1806819,
+      "mtime_ns": 1791706465649857257,
+      "sha256": "cb0a38f22aadc13eb33e2cad687b0d85ae0d015e386986623d1dad8c98efe25c"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/main.jsonl",
+      "bytes": 10810266,
+      "mtime_ns": 1791706662400307592,
+      "sha256": "14c46f002df27842f49f0d2658ea4e2fd54195f4830a285e6a2d623d467636ab"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/rollout_executor.jsonl",
+      "bytes": 1476867,
+      "mtime_ns": 1791706661471117291,
+      "sha256": "29eb1980d8d91ccc85e92cbe49a87820bfb74c8636be88cf68a5d5e13df06781"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/trainer_controller_actor.jsonl",
+      "bytes": 772242,
+      "mtime_ns": 1791706675609957878,
+      "sha256": "d17b881be080a8b8e132dae3ce3ceda1b1b9fa74ab8e5e4a34de3768ace839ad"
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/worker_manager.jsonl",
+      "bytes": 850497,
+      "mtime_ns": 1791703460911662346,
+      "sha256": "33f3bd7d41004b50dd2842f172a6bd3d0be77bd4e4a3ce693e0d566665050453"
+    },
+    {
+      "path": "checkpoints/iter_0000049/metadata.json",
+      "bytes": 63,
+      "mtime_ns": 1791706717307572773,
+      "sha256": "56b32e2dfbc0255db319bddf6880c9dfd3475135ca8d5ace23b8a6a384ed63c6"
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_24.pt",
+      "bytes": 1579,
+      "mtime_ns": 1791702143729319835,
+      "sha256": "1e442676af5c679dd24fd9c860135ab260006ac1f4600945048051c75789b2b2"
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_49.pt",
+      "bytes": 1579,
+      "mtime_ns": 1791706717332756505,
+      "sha256": "f16733e455f89b068e7189020a6e1b322ced424e33894d5f4a0191f8629f1695"
+    }
+  ]
+}

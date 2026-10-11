@@ -1,0 +1,23 @@
+import os
+import subprocess
+from pathlib import Path
+
+out = Path('/workspace/experiments/alfworld/alfworld_session_server')
+base = Path('/tmp/miles-alfworld-baseline-validation')
+if not base.exists():
+    subprocess.run(['git','worktree','add','--detach',str(base),'99b756e62dc9cd42c6e4d58cebaeedb6ee3f7467'],cwd='/workspace/miles',check=True,timeout=120)
+env = dict(os.environ, PYTHONPATH=str(base)+':/root/Megatron-LM', OMP_NUM_THREADS='1')
+env.pop('MILES_UPDATE_LAUNCH_SCRIPT_SNAPSHOTS',None)
+code = "import sys; sys.path.insert(0, '/tmp/miles-alfworld-baseline-validation'); import pytest; raise SystemExit(pytest.main(['tests/fast/launch_scripts','tests/manual/launch_scripts','-q','--tb=short']))"
+with (out/'baseline-launcher-tests.log').open('w') as log:
+    result = subprocess.run(['python','-c',code],cwd=base,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=900)
+print('BASELINE_TEST_EXIT', result.returncode)
+for name in ['full-launcher-tests.log','baseline-launcher-tests.log']:
+    lines=(out/name).read_text().splitlines()
+    problems={line for line in lines if line.startswith(('FAILED ','ERROR '))}
+    print(name, lines[-3:])
+    if name.startswith('full'):
+        modified=problems
+    else:
+        print('MODIFIED_ONLY_FAILURES', sorted(modified-problems))
+        print('BASELINE_ONLY_FAILURES', sorted(problems-modified))

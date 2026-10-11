@@ -1,0 +1,63 @@
+"""Back up lightweight run artifacts; never download large checkpoint shards."""
+import hashlib
+import json
+import re
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+
+import modal
+
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / 'outputs/alfworld'
+RECORD = ROOT / 'work/miles-fork/examples/experimental/alfworld/experiments/2026-10-11-session-server'
+PREFIX = '/experiments/alfworld/alfworld_session_server'
+PATTERNS = [r'wandb_v1_[A-Za-z0-9_-]+', r'github_pat_[A-Za-z0-9_]+', r'gh[pousr]_[A-Za-z0-9]+', r'hf_[A-Za-z0-9]{20,}', r'(?i)(?<=Bearer )[A-Za-z0-9_.-]{20,}']
+
+def redact(text):
+    total = 0
+    for pattern in PATTERNS:
+        text, count = re.subn(pattern, '<REDACTED_CREDENTIAL>', text)
+        total += count
+    text, count = re.subn(r'(--wandb-key\s+)([^\s]+)', r'\1<REDACTED_CREDENTIAL>', text)
+    return text, total + count
+
+
+def backup():
+    volume = modal.Volume.from_name('h100-dev-files')
+    entries = volume.listdir(PREFIX, recursive=True)
+    selected = []
+    for entry in entries:
+        path = '/' + entry.path.lstrip('/')
+        relative = path.removeprefix(PREFIX + '/')
+        if entry.type == modal.volume.FileEntryType.FILE and (len(Path(relative).parts) == 1 or relative.startswith('token_metrics/')):
+            if Path(relative).suffix in {'.json', '.log', '.py', '.txt'} and entry.size < 50 * 1024**2:
+                selected.append((path, relative))
+    def download(item):
+        path, relative = item
+        data = b''.join(volume.read_file(path))
+        text, redactions = redact(data.decode('utf-8'))
+        dest = OUT / 'run-artifacts' / relative
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text)
+        return {'path': relative, 'bytes': dest.stat().st_size, 'sha256': hashlib.sha256(dest.read_bytes()).hexdigest(), 'redactions': redactions}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        manifest = list(pool.map(download, selected))
+    (OUT / 'local_artifacts_manifest.json').write_text(json.dumps(manifest, indent=2))
+    # Commit small evidence and exact environment-specific operation snapshots.
+    RECORD.mkdir(parents=True, exist_ok=True)
+    evidence = ['split_manifest.json','config_50.json','launch_50.json','baseline_standard_metrics.json','eval25_verified.json','eval25_standard_metrics.json','eval50_standard_metrics.json','final_results.json','async_sample_verification.json','eval_logging_updated.json','reward_audit.json']
+    for name in evidence:
+        src = OUT / 'run-artifacts' / name
+        if not src.exists(): src = OUT / name
+        if src.exists():
+            text, _ = redact(src.read_text()); (RECORD / name).write_text(text)
+    operations = RECORD / 'operations'; operations.mkdir(exist_ok=True)
+    for src in (ROOT / 'work/alfworld').glob('*.py'):
+        text, _ = redact(src.read_text()); (operations / (src.name + '.txt')).write_text(text)
+    for name in ['start_dev.py','connect_dev.py','stop_dev.py','miles_image.py','configure_wandb.py']:
+        src = Path('/Users/xiaoleguo/Documents/modal-dev') / name
+        if src.exists():
+            text, _ = redact(src.read_text()); (operations / ('modal_' + name + '.txt')).write_text(text)
+    print(json.dumps({'downloaded_files':len(manifest),'downloaded_bytes':sum(x['bytes'] for x in manifest),'credential_redactions':sum(x['redactions'] for x in manifest)}))
+
+if __name__ == '__main__': backup()

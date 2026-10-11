@@ -1,0 +1,13 @@
+import inspect
+import ray
+import ray.actor
+from ray.util.state import list_actors
+src = inspect.getsource(ray.actor)
+lines = src.splitlines()
+for i, line in enumerate(lines):
+    if '__ray_call__' in line:
+        print('\n'.join(lines[max(0,i-3):i+9]))
+ray.init(address='auto', log_to_driver=False)
+for a in list_actors(filters=[('class_name', '=', 'RolloutExecutor')], detail=True):
+    print({k: getattr(a,k,None) for k in ['actor_id','name','ray_namespace','state','job_id','pid']})
+ray.shutdown()

@@ -1,0 +1,7 @@
+import os, subprocess
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+r=subprocess.run(['pytest','tests/fast/alfworld/test_benchmark_metrics.py','tests/fast/alfworld/test_per_turn.py','-q','--tb=short'],env=dict(os.environ,PYTHONPATH='/workspace/miles:/root/Megatron-LM',OMP_NUM_THREADS='1'),capture_output=True,text=True,timeout=180)
+(root/'benchmark-metrics-tests.log').write_text(r.stdout+r.stderr)
+print(r.stdout); print(r.stderr)
+assert r.returncode==0

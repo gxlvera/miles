@@ -1,0 +1,3897 @@
+{
+  "run_root": "/workspace/experiments/alfworld/alfworld_session_server",
+  "files": [
+    {
+      "path": "archive_inventory_progress.json",
+      "size": 95210
+    },
+    {
+      "path": "async-driver-tests.log",
+      "size": 5974
+    },
+    {
+      "path": "async_sample_verification.json",
+      "size": 378
+    },
+    {
+      "path": "async_training_verified.json",
+      "size": 329
+    },
+    {
+      "path": "attempt-1-config.json",
+      "size": 1457
+    },
+    {
+      "path": "attempt-1-invalid-tool-parser.log",
+      "size": 678385
+    },
+    {
+      "path": "attempt-1-launch.json",
+      "size": 2674
+    },
+    {
+      "path": "baseline-config_50.json",
+      "size": 1457
+    },
+    {
+      "path": "baseline-launch_50.json",
+      "size": 2744
+    },
+    {
+      "path": "baseline-launcher-tests.log",
+      "size": 405469
+    },
+    {
+      "path": "baseline-process.json",
+      "size": 69
+    },
+    {
+      "path": "baseline-train.log",
+      "size": 6409737
+    },
+    {
+      "path": "baseline_standard_metrics.json",
+      "size": 2023
+    },
+    {
+      "path": "baseline_verified.json",
+      "size": 22418
+    },
+    {
+      "path": "benchmark-metrics-tests.log",
+      "size": 5729
+    },
+    {
+      "path": "checkpoint_manifest.json",
+      "size": 9455
+    },
+    {
+      "path": "config_50.json",
+      "size": 1505
+    },
+    {
+      "path": "convert.log",
+      "size": 55781
+    },
+    {
+      "path": "cpu-tests.log",
+      "size": 2032
+    },
+    {
+      "path": "environment_manifest.json",
+      "size": 32045
+    },
+    {
+      "path": "eval25_standard_metrics.json",
+      "size": 1994
+    },
+    {
+      "path": "eval25_verified.json",
+      "size": 744
+    },
+    {
+      "path": "eval50_standard_metrics.json",
+      "size": 2007
+    },
+    {
+      "path": "eval_logging_updated.json",
+      "size": 662
+    },
+    {
+      "path": "final_results.json",
+      "size": 11844
+    },
+    {
+      "path": "final_wandb_recovery.json",
+      "size": 441
+    },
+    {
+      "path": "full-launcher-tests.log",
+      "size": 390140
+    },
+    {
+      "path": "games-download.log",
+      "size": 555
+    },
+    {
+      "path": "heartbeat_status.json",
+      "size": 1443
+    },
+    {
+      "path": "install.log",
+      "size": 17580
+    },
+    {
+      "path": "launch_50.json",
+      "size": 2893
+    },
+    {
+      "path": "model-download.log",
+      "size": 1165
+    },
+    {
+      "path": "parser-launcher-test.log",
+      "size": 1971
+    },
+    {
+      "path": "prepare-data.log",
+      "size": 856
+    },
+    {
+      "path": "process.json",
+      "size": 203
+    },
+    {
+      "path": "ray-start.log",
+      "size": 34171
+    },
+    {
+      "path": "reward_audit.json",
+      "size": 11086
+    },
+    {
+      "path": "run_experiment.py",
+      "size": 4138
+    },
+    {
+      "path": "train.log",
+      "size": 18798838
+    },
+    {
+      "path": "wandb_run_id.txt",
+      "size": 8
+    },
+    {
+      "path": "checkpoints/latest_checkpointed_iteration.txt",
+      "size": 2
+    },
+    {
+      "path": "token_metrics/eval_alfworld_holdout30_tokens_000000.json",
+      "size": 5174639
+    },
+    {
+      "path": "token_metrics/eval_alfworld_holdout30_tokens_000024.json",
+      "size": 4100690
+    },
+    {
+      "path": "token_metrics/eval_alfworld_holdout30_tokens_000049.json",
+      "size": 3452143
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000000.json",
+      "size": 177002
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000001.json",
+      "size": 150898
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000002.json",
+      "size": 142362
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000003.json",
+      "size": 175625
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000004.json",
+      "size": 189383
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000005.json",
+      "size": 173825
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000006.json",
+      "size": 124000
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000007.json",
+      "size": 111595
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000008.json",
+      "size": 160617
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000009.json",
+      "size": 115422
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000010.json",
+      "size": 138407
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000011.json",
+      "size": 153509
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000012.json",
+      "size": 138072
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000013.json",
+      "size": 168007
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000014.json",
+      "size": 147787
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000015.json",
+      "size": 119473
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000016.json",
+      "size": 160103
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000017.json",
+      "size": 150162
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000018.json",
+      "size": 107607
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000019.json",
+      "size": 147679
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000020.json",
+      "size": 152506
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000021.json",
+      "size": 198928
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000022.json",
+      "size": 158006
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000023.json",
+      "size": 134893
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000024.json",
+      "size": 156548
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000025.json",
+      "size": 161609
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000026.json",
+      "size": 161363
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000027.json",
+      "size": 153658
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000028.json",
+      "size": 128517
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000029.json",
+      "size": 160696
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000030.json",
+      "size": 144805
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000031.json",
+      "size": 95774
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000032.json",
+      "size": 169051
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000033.json",
+      "size": 133960
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000034.json",
+      "size": 145463
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000035.json",
+      "size": 121398
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000036.json",
+      "size": 122514
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000037.json",
+      "size": 129579
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000038.json",
+      "size": 115263
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000039.json",
+      "size": 141624
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000040.json",
+      "size": 126241
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000041.json",
+      "size": 130765
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000042.json",
+      "size": 100807
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000043.json",
+      "size": 135556
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000044.json",
+      "size": 119190
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000045.json",
+      "size": 99098
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000046.json",
+      "size": 93432
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000047.json",
+      "size": 93546
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000048.json",
+      "size": 140417
+    },
+    {
+      "path": "token_metrics/rollout_alfworld_000049.json",
+      "size": 130784
+    },
+    {
+      "path": "checkpoints/iter_0000024/.metadata",
+      "size": 1937297
+    },
+    {
+      "path": "checkpoints/iter_0000024/__0_0.distcp",
+      "size": 14724908875
+    },
+    {
+      "path": "checkpoints/iter_0000024/__1_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000024/__2_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000024/__3_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000024/metadata.json",
+      "size": 63
+    },
+    {
+      "path": "checkpoints/iter_0000049/.metadata",
+      "size": 1937297
+    },
+    {
+      "path": "checkpoints/iter_0000049/__0_0.distcp",
+      "size": 14724908875
+    },
+    {
+      "path": "checkpoints/iter_0000049/__1_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000049/__2_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000049/__3_0.distcp",
+      "size": 14724137964
+    },
+    {
+      "path": "checkpoints/iter_0000049/metadata.json",
+      "size": 63
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_24.pt",
+      "size": 1579
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_49.pt",
+      "size": 1579
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00000.jsonl",
+      "size": 1030139
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00001.jsonl",
+      "size": 979189
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00002.jsonl",
+      "size": 979189
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00003.jsonl",
+      "size": 979189
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00004.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00005.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00006.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00007.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/inference_controller.jsonl",
+      "size": 1415949
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/main.jsonl",
+      "size": 6119403
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/rollout_executor.jsonl",
+      "size": 1079315
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/trainer_controller_actor.jsonl",
+      "size": 674854
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/worker_manager.jsonl",
+      "size": 758996
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00000.jsonl",
+      "size": 1173590
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00001.jsonl",
+      "size": 1072101
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00002.jsonl",
+      "size": 1072101
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00003.jsonl",
+      "size": 1072101
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00004.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00005.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00006.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00007.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/inference_controller.jsonl",
+      "size": 1806819
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/main.jsonl",
+      "size": 10810266
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/rollout_executor.jsonl",
+      "size": 1476867
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/trainer_controller_actor.jsonl",
+      "size": 772242
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/worker_manager.jsonl",
+      "size": 850497
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_0.parquet",
+      "size": 377029
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_1.parquet",
+      "size": 263162
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_10.parquet",
+      "size": 375642
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_11.parquet",
+      "size": 489849
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_12.parquet",
+      "size": 306967
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_13.parquet",
+      "size": 563102
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_14.parquet",
+      "size": 286072
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_15.parquet",
+      "size": 297969
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_16.parquet",
+      "size": 461429
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_17.parquet",
+      "size": 414078
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_18.parquet",
+      "size": 289376
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_19.parquet",
+      "size": 453358
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_2.parquet",
+      "size": 199832
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_20.parquet",
+      "size": 452133
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_21.parquet",
+      "size": 514920
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_22.parquet",
+      "size": 430928
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_23.parquet",
+      "size": 302290
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_24.parquet",
+      "size": 463589
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_25.parquet",
+      "size": 442913
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_26.parquet",
+      "size": 423167
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_27.parquet",
+      "size": 419471
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_28.parquet",
+      "size": 240174
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_29.parquet",
+      "size": 468236
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_3.parquet",
+      "size": 375859
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_30.parquet",
+      "size": 406734
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_31.parquet",
+      "size": 209068
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_32.parquet",
+      "size": 377308
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_33.parquet",
+      "size": 342456
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_34.parquet",
+      "size": 397782
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_35.parquet",
+      "size": 335601
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_36.parquet",
+      "size": 250737
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_37.parquet",
+      "size": 384757
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_38.parquet",
+      "size": 313361
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_39.parquet",
+      "size": 395568
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_4.parquet",
+      "size": 681840
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_40.parquet",
+      "size": 268706
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_41.parquet",
+      "size": 379666
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_42.parquet",
+      "size": 279374
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_43.parquet",
+      "size": 268989
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_44.parquet",
+      "size": 279190
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_45.parquet",
+      "size": 218086
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_46.parquet",
+      "size": 202774
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_47.parquet",
+      "size": 232643
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_48.parquet",
+      "size": 348860
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_49.parquet",
+      "size": 333515
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_5.parquet",
+      "size": 341043
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_6.parquet",
+      "size": 316375
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_7.parquet",
+      "size": 234737
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_8.parquet",
+      "size": 349269
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_9.parquet",
+      "size": 296949
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_eval_0.parquet",
+      "size": 9804727
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_eval_24.parquet",
+      "size": 8933648
+    },
+    {
+      "path": "dump_details/dashboard_columns/rollout_eval_49.parquet",
+      "size": 6770860
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00000.jsonl",
+      "size": 1266252
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00001.jsonl",
+      "size": 1072101
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00002.jsonl",
+      "size": 1165013
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00003.jsonl",
+      "size": 1164693
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00004.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00005.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00006.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "dump_details/events/actor_cell00000_rank00007.jsonl",
+      "size": 653024
+    },
+    {
+      "path": "dump_details/events/inference_controller.jsonl",
+      "size": 1806819
+    },
+    {
+      "path": "dump_details/events/main.jsonl",
+      "size": 10994107
+    },
+    {
+      "path": "dump_details/events/rollout_executor.jsonl",
+      "size": 1571389
+    },
+    {
+      "path": "dump_details/events/trainer_controller_actor.jsonl",
+      "size": 863855
+    },
+    {
+      "path": "dump_details/events/worker_manager.jsonl",
+      "size": 941998
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_0.pt",
+      "size": 711217
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_1.pt",
+      "size": 704689
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_10.pt",
+      "size": 710725
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_100.pt",
+      "size": 716599
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_101.pt",
+      "size": 708791
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_102.pt",
+      "size": 661687
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_103.pt",
+      "size": 689365
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_104.pt",
+      "size": 638643
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_105.pt",
+      "size": 573201
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_106.pt",
+      "size": 713271
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_107.pt",
+      "size": 729783
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_108.pt",
+      "size": 713015
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_109.pt",
+      "size": 697045
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_11.pt",
+      "size": 693445
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_110.pt",
+      "size": 655027
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_111.pt",
+      "size": 631821
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_112.pt",
+      "size": 240145
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_113.pt",
+      "size": 692825
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_114.pt",
+      "size": 740057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_115.pt",
+      "size": 740953
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_116.pt",
+      "size": 727257
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_117.pt",
+      "size": 681561
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_118.pt",
+      "size": 708663
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_119.pt",
+      "size": 693431
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_12.pt",
+      "size": 694941
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_120.pt",
+      "size": 689365
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_121.pt",
+      "size": 689365
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_122.pt",
+      "size": 722487
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_123.pt",
+      "size": 680243
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_124.pt",
+      "size": 727641
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_125.pt",
+      "size": 714329
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_126.pt",
+      "size": 727129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_127.pt",
+      "size": 723545
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_128.pt",
+      "size": 711385
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_129.pt",
+      "size": 711769
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_13.pt",
+      "size": 660125
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_130.pt",
+      "size": 716983
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_131.pt",
+      "size": 671543
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_132.pt",
+      "size": 662643
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_133.pt",
+      "size": 581069
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_134.pt",
+      "size": 40061
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_135.pt",
+      "size": 724697
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_136.pt",
+      "size": 722521
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_137.pt",
+      "size": 660057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_138.pt",
+      "size": 714649
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_139.pt",
+      "size": 718937
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_14.pt",
+      "size": 69743
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_140.pt",
+      "size": 675417
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_141.pt",
+      "size": 723545
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_142.pt",
+      "size": 676919
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_143.pt",
+      "size": 694485
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_144.pt",
+      "size": 672469
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_145.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_146.pt",
+      "size": 568533
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_147.pt",
+      "size": 356989
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_148.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_149.pt",
+      "size": 732377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_15.pt",
+      "size": 694853
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_150.pt",
+      "size": 717401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_151.pt",
+      "size": 672473
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_152.pt",
+      "size": 702135
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_153.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_154.pt",
+      "size": 729689
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_155.pt",
+      "size": 732249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_156.pt",
+      "size": 726745
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_157.pt",
+      "size": 706265
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_158.pt",
+      "size": 662425
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_159.pt",
+      "size": 694869
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_16.pt",
+      "size": 715293
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_160.pt",
+      "size": 570163
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_161.pt",
+      "size": 722615
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_162.pt",
+      "size": 735415
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_163.pt",
+      "size": 731959
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_164.pt",
+      "size": 719543
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_165.pt",
+      "size": 726711
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_166.pt",
+      "size": 680661
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_167.pt",
+      "size": 668595
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_168.pt",
+      "size": 614447
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_169.pt",
+      "size": 40061
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_17.pt",
+      "size": 703645
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_170.pt",
+      "size": 699481
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_171.pt",
+      "size": 678489
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_172.pt",
+      "size": 720567
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_173.pt",
+      "size": 654937
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_174.pt",
+      "size": 620249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_175.pt",
+      "size": 736345
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_176.pt",
+      "size": 736985
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_177.pt",
+      "size": 738521
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_178.pt",
+      "size": 735833
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_179.pt",
+      "size": 734809
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_18.pt",
+      "size": 714909
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_180.pt",
+      "size": 723033
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_181.pt",
+      "size": 692953
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_182.pt",
+      "size": 666009
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_183.pt",
+      "size": 589141
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_184.pt",
+      "size": 109693
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_185.pt",
+      "size": 730329
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_186.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_187.pt",
+      "size": 723545
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_188.pt",
+      "size": 682073
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_189.pt",
+      "size": 677465
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_19.pt",
+      "size": 723101
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_190.pt",
+      "size": 661721
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_191.pt",
+      "size": 720567
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_192.pt",
+      "size": 700599
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_193.pt",
+      "size": 691383
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_194.pt",
+      "size": 638519
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_195.pt",
+      "size": 574037
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_196.pt",
+      "size": 467669
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_197.pt",
+      "size": 726233
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_198.pt",
+      "size": 731737
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_199.pt",
+      "size": 734297
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_2.pt",
+      "size": 705667
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_20.pt",
+      "size": 677917
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_200.pt",
+      "size": 732761
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_201.pt",
+      "size": 725081
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_202.pt",
+      "size": 732249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_203.pt",
+      "size": 713817
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_204.pt",
+      "size": 711863
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_205.pt",
+      "size": 624435
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_206.pt",
+      "size": 621197
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_207.pt",
+      "size": 112857
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_208.pt",
+      "size": 675033
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_209.pt",
+      "size": 664153
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_21.pt",
+      "size": 664221
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_210.pt",
+      "size": 724023
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_211.pt",
+      "size": 712887
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_212.pt",
+      "size": 732377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_213.pt",
+      "size": 740441
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_214.pt",
+      "size": 722521
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_215.pt",
+      "size": 731737
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_216.pt",
+      "size": 730807
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_217.pt",
+      "size": 693815
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_218.pt",
+      "size": 713429
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_219.pt",
+      "size": 345301
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_22.pt",
+      "size": 635189
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_220.pt",
+      "size": 696957
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_221.pt",
+      "size": 728793
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_222.pt",
+      "size": 728473
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_223.pt",
+      "size": 719577
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_224.pt",
+      "size": 663257
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_225.pt",
+      "size": 693431
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_226.pt",
+      "size": 658103
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_227.pt",
+      "size": 648887
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_228.pt",
+      "size": 688149
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_229.pt",
+      "size": 525401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_23.pt",
+      "size": 727621
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_230.pt",
+      "size": 463997
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_231.pt",
+      "size": 454781
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_232.pt",
+      "size": 459901
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_233.pt",
+      "size": 448637
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_234.pt",
+      "size": 428157
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_235.pt",
+      "size": 420989
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_236.pt",
+      "size": 400509
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_237.pt",
+      "size": 382077
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_238.pt",
+      "size": 738521
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_239.pt",
+      "size": 732377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_24.pt",
+      "size": 709701
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_240.pt",
+      "size": 711257
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_241.pt",
+      "size": 723127
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_242.pt",
+      "size": 691925
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_243.pt",
+      "size": 646131
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_244.pt",
+      "size": 642739
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_245.pt",
+      "size": 573419
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_246.pt",
+      "size": 725081
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_247.pt",
+      "size": 708313
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_248.pt",
+      "size": 725081
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_249.pt",
+      "size": 729689
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_25.pt",
+      "size": 684613
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_250.pt",
+      "size": 718553
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_251.pt",
+      "size": 720985
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_252.pt",
+      "size": 671833
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_253.pt",
+      "size": 706103
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_254.pt",
+      "size": 645175
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_255.pt",
+      "size": 650069
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_256.pt",
+      "size": 520183
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_257.pt",
+      "size": 716377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_258.pt",
+      "size": 729305
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_259.pt",
+      "size": 362109
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_26.pt",
+      "size": 634565
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_260.pt",
+      "size": 716377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_261.pt",
+      "size": 694873
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_262.pt",
+      "size": 711223
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_263.pt",
+      "size": 704887
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_264.pt",
+      "size": 730329
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_265.pt",
+      "size": 704089
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_266.pt",
+      "size": 674393
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_267.pt",
+      "size": 659797
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_268.pt",
+      "size": 494681
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_269.pt",
+      "size": 717529
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_27.pt",
+      "size": 712261
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_270.pt",
+      "size": 419453
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_271.pt",
+      "size": 415357
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_272.pt",
+      "size": 416893
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_273.pt",
+      "size": 415357
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_274.pt",
+      "size": 404093
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_275.pt",
+      "size": 389245
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_276.pt",
+      "size": 714969
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_277.pt",
+      "size": 708825
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_278.pt",
+      "size": 735961
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_279.pt",
+      "size": 739545
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_28.pt",
+      "size": 704541
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_280.pt",
+      "size": 688217
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_281.pt",
+      "size": 735129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_282.pt",
+      "size": 735449
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_283.pt",
+      "size": 628441
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_284.pt",
+      "size": 479357
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_285.pt",
+      "size": 479933
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_286.pt",
+      "size": 735641
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_287.pt",
+      "size": 734297
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_288.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_289.pt",
+      "size": 715673
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_29.pt",
+      "size": 719901
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_290.pt",
+      "size": 450685
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_291.pt",
+      "size": 437885
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_292.pt",
+      "size": 734937
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_293.pt",
+      "size": 399997
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_294.pt",
+      "size": 391293
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_295.pt",
+      "size": 386685
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_296.pt",
+      "size": 385661
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_297.pt",
+      "size": 732761
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_298.pt",
+      "size": 704601
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_299.pt",
+      "size": 722649
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_3.pt",
+      "size": 734769
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_30.pt",
+      "size": 721437
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_300.pt",
+      "size": 732249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_301.pt",
+      "size": 720985
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_302.pt",
+      "size": 647385
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_303.pt",
+      "size": 735641
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_304.pt",
+      "size": 743513
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_305.pt",
+      "size": 704089
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_306.pt",
+      "size": 720567
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_307.pt",
+      "size": 709431
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_308.pt",
+      "size": 687829
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_309.pt",
+      "size": 539733
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_31.pt",
+      "size": 710453
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_310.pt",
+      "size": 726745
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_311.pt",
+      "size": 731737
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_312.pt",
+      "size": 717017
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_313.pt",
+      "size": 673497
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_314.pt",
+      "size": 660057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_315.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_316.pt",
+      "size": 708279
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_317.pt",
+      "size": 694455
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_318.pt",
+      "size": 636757
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_319.pt",
+      "size": 576273
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_32.pt",
+      "size": 665869
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_320.pt",
+      "size": 305877
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_321.pt",
+      "size": 662617
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_322.pt",
+      "size": 710839
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_323.pt",
+      "size": 707127
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_324.pt",
+      "size": 657079
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_325.pt",
+      "size": 655223
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_326.pt",
+      "size": 596663
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_327.pt",
+      "size": 460925
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_328.pt",
+      "size": 450173
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_329.pt",
+      "size": 444029
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_33.pt",
+      "size": 640997
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_330.pt",
+      "size": 442493
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_331.pt",
+      "size": 442493
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_332.pt",
+      "size": 733913
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_333.pt",
+      "size": 732249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_334.pt",
+      "size": 727129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_335.pt",
+      "size": 723033
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_336.pt",
+      "size": 642777
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_337.pt",
+      "size": 736473
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_338.pt",
+      "size": 707801
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_339.pt",
+      "size": 688857
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_34.pt",
+      "size": 524517
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_340.pt",
+      "size": 733913
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_341.pt",
+      "size": 717401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_342.pt",
+      "size": 646745
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_343.pt",
+      "size": 724377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_344.pt",
+      "size": 715447
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_345.pt",
+      "size": 613081
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_346.pt",
+      "size": 738905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_347.pt",
+      "size": 701239
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_348.pt",
+      "size": 731225
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_349.pt",
+      "size": 718425
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_35.pt",
+      "size": 737861
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_350.pt",
+      "size": 668885
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_351.pt",
+      "size": 730329
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_352.pt",
+      "size": 716471
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_353.pt",
+      "size": 672755
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_354.pt",
+      "size": 587477
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_355.pt",
+      "size": 475261
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_356.pt",
+      "size": 467581
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_357.pt",
+      "size": 457341
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_358.pt",
+      "size": 716889
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_359.pt",
+      "size": 739417
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_36.pt",
+      "size": 730821
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_360.pt",
+      "size": 719449
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_361.pt",
+      "size": 741081
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_362.pt",
+      "size": 733913
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_363.pt",
+      "size": 724569
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_364.pt",
+      "size": 678617
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_365.pt",
+      "size": 368253
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_366.pt",
+      "size": 738393
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_367.pt",
+      "size": 733913
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_368.pt",
+      "size": 716377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_369.pt",
+      "size": 694489
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_37.pt",
+      "size": 716829
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_370.pt",
+      "size": 728759
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_371.pt",
+      "size": 708663
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_372.pt",
+      "size": 709333
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_373.pt",
+      "size": 628949
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_374.pt",
+      "size": 671923
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_375.pt",
+      "size": 562867
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_376.pt",
+      "size": 730841
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_377.pt",
+      "size": 734425
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_378.pt",
+      "size": 713783
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_379.pt",
+      "size": 684087
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_38.pt",
+      "size": 706717
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_380.pt",
+      "size": 696887
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_381.pt",
+      "size": 690359
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_382.pt",
+      "size": 634069
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_383.pt",
+      "size": 625583
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_384.pt",
+      "size": 337715
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_385.pt",
+      "size": 745049
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_386.pt",
+      "size": 734425
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_387.pt",
+      "size": 743001
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_388.pt",
+      "size": 738393
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_389.pt",
+      "size": 734425
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_39.pt",
+      "size": 578629
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_390.pt",
+      "size": 727129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_391.pt",
+      "size": 743513
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_392.pt",
+      "size": 743129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_393.pt",
+      "size": 731865
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_394.pt",
+      "size": 725303
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_395.pt",
+      "size": 699221
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_396.pt",
+      "size": 633011
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_397.pt",
+      "size": 175193
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_398.pt",
+      "size": 732761
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_399.pt",
+      "size": 708313
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_4.pt",
+      "size": 702129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_40.pt",
+      "size": 733893
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_400.pt",
+      "size": 721079
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_401.pt",
+      "size": 713271
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_402.pt",
+      "size": 693431
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_403.pt",
+      "size": 679095
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_404.pt",
+      "size": 691285
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_405.pt",
+      "size": 673685
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_406.pt",
+      "size": 737881
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_407.pt",
+      "size": 474201
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_408.pt",
+      "size": 414333
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_409.pt",
+      "size": 412797
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_41.pt",
+      "size": 706629
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_410.pt",
+      "size": 719577
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_411.pt",
+      "size": 705079
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_412.pt",
+      "size": 724855
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_413.pt",
+      "size": 666167
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_414.pt",
+      "size": 706901
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_415.pt",
+      "size": 624815
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_416.pt",
+      "size": 538983
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_417.pt",
+      "size": 43645
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_418.pt",
+      "size": 728153
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_419.pt",
+      "size": 654233
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_42.pt",
+      "size": 499311
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_420.pt",
+      "size": 646233
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_421.pt",
+      "size": 729817
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_422.pt",
+      "size": 735321
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_423.pt",
+      "size": 625881
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_424.pt",
+      "size": 627801
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_425.pt",
+      "size": 595545
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_426.pt",
+      "size": 713911
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_427.pt",
+      "size": 697527
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_428.pt",
+      "size": 645815
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_429.pt",
+      "size": 383613
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_43.pt",
+      "size": 493679
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_430.pt",
+      "size": 383101
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_431.pt",
+      "size": 739929
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_432.pt",
+      "size": 730841
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_433.pt",
+      "size": 362109
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_434.pt",
+      "size": 726617
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_435.pt",
+      "size": 688729
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_436.pt",
+      "size": 733273
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_437.pt",
+      "size": 693943
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_438.pt",
+      "size": 683575
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_439.pt",
+      "size": 713399
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_44.pt",
+      "size": 499311
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_440.pt",
+      "size": 715063
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_441.pt",
+      "size": 735449
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_442.pt",
+      "size": 679991
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_443.pt",
+      "size": 726233
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_444.pt",
+      "size": 594351
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_445.pt",
+      "size": 728793
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_446.pt",
+      "size": 719577
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_447.pt",
+      "size": 730713
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_448.pt",
+      "size": 725209
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_449.pt",
+      "size": 695897
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_45.pt",
+      "size": 491119
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_450.pt",
+      "size": 669401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_451.pt",
+      "size": 729177
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_452.pt",
+      "size": 693849
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_453.pt",
+      "size": 684121
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_454.pt",
+      "size": 716471
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_455.pt",
+      "size": 709175
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_456.pt",
+      "size": 711863
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_457.pt",
+      "size": 614067
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_458.pt",
+      "size": 732761
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_459.pt",
+      "size": 724057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_46.pt",
+      "size": 488559
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_460.pt",
+      "size": 695897
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_461.pt",
+      "size": 684633
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_462.pt",
+      "size": 705207
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_463.pt",
+      "size": 718007
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_464.pt",
+      "size": 697015
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_465.pt",
+      "size": 682167
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_466.pt",
+      "size": 703189
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_467.pt",
+      "size": 597133
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_468.pt",
+      "size": 706777
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_469.pt",
+      "size": 733401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_47.pt",
+      "size": 492655
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_470.pt",
+      "size": 715865
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_471.pt",
+      "size": 713783
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_472.pt",
+      "size": 686775
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_473.pt",
+      "size": 690389
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_474.pt",
+      "size": 676309
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_475.pt",
+      "size": 661845
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_476.pt",
+      "size": 632499
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_477.pt",
+      "size": 213047
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_478.pt",
+      "size": 731737
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_479.pt",
+      "size": 727449
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_48.pt",
+      "size": 482927
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_480.pt",
+      "size": 720473
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_481.pt",
+      "size": 695385
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_482.pt",
+      "size": 669913
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_483.pt",
+      "size": 663769
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_484.pt",
+      "size": 731225
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_485.pt",
+      "size": 689241
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_486.pt",
+      "size": 693943
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_487.pt",
+      "size": 684245
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_488.pt",
+      "size": 659541
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_489.pt",
+      "size": 449331
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_49.pt",
+      "size": 481391
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_490.pt",
+      "size": 702553
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_491.pt",
+      "size": 729271
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_492.pt",
+      "size": 727223
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_493.pt",
+      "size": 712375
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_494.pt",
+      "size": 683703
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_495.pt",
+      "size": 687957
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_496.pt",
+      "size": 583689
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_497.pt",
+      "size": 134357
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_498.pt",
+      "size": 727129
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_499.pt",
+      "size": 742489
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_5.pt",
+      "size": 705585
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_50.pt",
+      "size": 478831
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_500.pt",
+      "size": 732889
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_501.pt",
+      "size": 692953
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_502.pt",
+      "size": 740057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_503.pt",
+      "size": 724697
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_504.pt",
+      "size": 678071
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_505.pt",
+      "size": 694613
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_506.pt",
+      "size": 636723
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_507.pt",
+      "size": 634641
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_508.pt",
+      "size": 119385
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_509.pt",
+      "size": 709529
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_51.pt",
+      "size": 465519
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_510.pt",
+      "size": 720985
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_511.pt",
+      "size": 674905
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_512.pt",
+      "size": 715959
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_513.pt",
+      "size": 715447
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_514.pt",
+      "size": 713015
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_515.pt",
+      "size": 705207
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_516.pt",
+      "size": 683349
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_517.pt",
+      "size": 649523
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_518.pt",
+      "size": 437939
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_519.pt",
+      "size": 727961
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_52.pt",
+      "size": 465007
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_520.pt",
+      "size": 737369
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_521.pt",
+      "size": 721591
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_522.pt",
+      "size": 673463
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_523.pt",
+      "size": 730841
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_524.pt",
+      "size": 692437
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_525.pt",
+      "size": 740953
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_526.pt",
+      "size": 740953
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_527.pt",
+      "size": 680115
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_528.pt",
+      "size": 637969
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_529.pt",
+      "size": 42621
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_53.pt",
+      "size": 447599
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_530.pt",
+      "size": 747097
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_531.pt",
+      "size": 718937
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_532.pt",
+      "size": 725687
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_533.pt",
+      "size": 696661
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_534.pt",
+      "size": 655249
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_535.pt",
+      "size": 607151
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_536.pt",
+      "size": 435341
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_537.pt",
+      "size": 689881
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_538.pt",
+      "size": 723161
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_539.pt",
+      "size": 708407
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_54.pt",
+      "size": 438895
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_540.pt",
+      "size": 715447
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_541.pt",
+      "size": 722615
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_542.pt",
+      "size": 657463
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_543.pt",
+      "size": 685269
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_544.pt",
+      "size": 642773
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_545.pt",
+      "size": 646673
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_546.pt",
+      "size": 181977
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_547.pt",
+      "size": 720473
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_548.pt",
+      "size": 731737
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_549.pt",
+      "size": 687321
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_55.pt",
+      "size": 712901
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_550.pt",
+      "size": 674521
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_551.pt",
+      "size": 724697
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_552.pt",
+      "size": 707127
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_553.pt",
+      "size": 647351
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_554.pt",
+      "size": 639923
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_555.pt",
+      "size": 639023
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_556.pt",
+      "size": 307413
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_557.pt",
+      "size": 700633
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_558.pt",
+      "size": 717495
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_559.pt",
+      "size": 709175
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_56.pt",
+      "size": 340079
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_560.pt",
+      "size": 686293
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_561.pt",
+      "size": 633557
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_562.pt",
+      "size": 629939
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_563.pt",
+      "size": 629551
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_564.pt",
+      "size": 251605
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_565.pt",
+      "size": 693849
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_566.pt",
+      "size": 728153
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_567.pt",
+      "size": 690871
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_568.pt",
+      "size": 703159
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_569.pt",
+      "size": 682163
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_57.pt",
+      "size": 731205
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_570.pt",
+      "size": 659345
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_571.pt",
+      "size": 633229
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_572.pt",
+      "size": 110135
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_573.pt",
+      "size": 735321
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_574.pt",
+      "size": 690777
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_575.pt",
+      "size": 707127
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_576.pt",
+      "size": 637235
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_577.pt",
+      "size": 623633
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_578.pt",
+      "size": 642961
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_579.pt",
+      "size": 539405
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_58.pt",
+      "size": 702533
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_580.pt",
+      "size": 687193
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_581.pt",
+      "size": 697945
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_582.pt",
+      "size": 706231
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_583.pt",
+      "size": 715993
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_584.pt",
+      "size": 716889
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_585.pt",
+      "size": 700121
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_586.pt",
+      "size": 702647
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_587.pt",
+      "size": 656567
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_588.pt",
+      "size": 732761
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_589.pt",
+      "size": 731865
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_59.pt",
+      "size": 675525
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_590.pt",
+      "size": 717401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_591.pt",
+      "size": 708313
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_592.pt",
+      "size": 710745
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_593.pt",
+      "size": 154295
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_594.pt",
+      "size": 725593
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_595.pt",
+      "size": 706777
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_596.pt",
+      "size": 721113
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_597.pt",
+      "size": 717401
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_598.pt",
+      "size": 639065
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_599.pt",
+      "size": 724377
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_6.pt",
+      "size": 734257
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_60.pt",
+      "size": 660037
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_600.pt",
+      "size": 714329
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_601.pt",
+      "size": 710873
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_602.pt",
+      "size": 732057
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_603.pt",
+      "size": 700599
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_604.pt",
+      "size": 590869
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_605.pt",
+      "size": 619601
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_606.pt",
+      "size": 84093
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_61.pt",
+      "size": 524399
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_62.pt",
+      "size": 518255
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_63.pt",
+      "size": 512623
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_64.pt",
+      "size": 484975
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_65.pt",
+      "size": 483439
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_66.pt",
+      "size": 478319
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_67.pt",
+      "size": 479343
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_68.pt",
+      "size": 462447
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_69.pt",
+      "size": 466543
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_7.pt",
+      "size": 731313
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_70.pt",
+      "size": 461423
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_71.pt",
+      "size": 464495
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_72.pt",
+      "size": 448623
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_73.pt",
+      "size": 448111
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_74.pt",
+      "size": 740421
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_75.pt",
+      "size": 443503
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_76.pt",
+      "size": 437871
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_77.pt",
+      "size": 732357
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_78.pt",
+      "size": 727109
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_79.pt",
+      "size": 689221
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_8.pt",
+      "size": 729649
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_80.pt",
+      "size": 312943
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_81.pt",
+      "size": 709789
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_82.pt",
+      "size": 698013
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_83.pt",
+      "size": 743493
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_84.pt",
+      "size": 696901
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_85.pt",
+      "size": 737989
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_86.pt",
+      "size": 595637
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_87.pt",
+      "size": 419439
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_88.pt",
+      "size": 417391
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_89.pt",
+      "size": 417391
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_9.pt",
+      "size": 728625
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_90.pt",
+      "size": 731845
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_91.pt",
+      "size": 731205
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_92.pt",
+      "size": 723141
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_93.pt",
+      "size": 722117
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_94.pt",
+      "size": 734789
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_95.pt",
+      "size": 721093
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_96.pt",
+      "size": 341103
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_97.pt",
+      "size": 702021
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_98.pt",
+      "size": 714909
+    },
+    {
+      "path": "dump_details/policy_loss_debug/rank_0_call_99.pt",
+      "size": 716829
+    },
+    {
+      "path": "dump_details/processor/chat_template.jinja",
+      "size": 7756
+    },
+    {
+      "path": "dump_details/processor/processor_config.json",
+      "size": 1191
+    },
+    {
+      "path": "dump_details/processor/tokenizer.json",
+      "size": 19989325
+    },
+    {
+      "path": "dump_details/processor/tokenizer_config.json",
+      "size": 1165
+    },
+    {
+      "path": "dump_details/rollout_data/0.pt",
+      "size": 6312393
+    },
+    {
+      "path": "dump_details/rollout_data/1.pt",
+      "size": 5205897
+    },
+    {
+      "path": "dump_details/rollout_data/10.pt",
+      "size": 5478671
+    },
+    {
+      "path": "dump_details/rollout_data/11.pt",
+      "size": 5816911
+    },
+    {
+      "path": "dump_details/rollout_data/12.pt",
+      "size": 3672591
+    },
+    {
+      "path": "dump_details/rollout_data/13.pt",
+      "size": 6282383
+    },
+    {
+      "path": "dump_details/rollout_data/14.pt",
+      "size": 5072399
+    },
+    {
+      "path": "dump_details/rollout_data/15.pt",
+      "size": 4555343
+    },
+    {
+      "path": "dump_details/rollout_data/16.pt",
+      "size": 5250127
+    },
+    {
+      "path": "dump_details/rollout_data/17.pt",
+      "size": 6393359
+    },
+    {
+      "path": "dump_details/rollout_data/18.pt",
+      "size": 3553743
+    },
+    {
+      "path": "dump_details/rollout_data/19.pt",
+      "size": 5909135
+    },
+    {
+      "path": "dump_details/rollout_data/2.pt",
+      "size": 3495945
+    },
+    {
+      "path": "dump_details/rollout_data/20.pt",
+      "size": 6313167
+    },
+    {
+      "path": "dump_details/rollout_data/21.pt",
+      "size": 7560911
+    },
+    {
+      "path": "dump_details/rollout_data/22.pt",
+      "size": 5775119
+    },
+    {
+      "path": "dump_details/rollout_data/23.pt",
+      "size": 4586767
+    },
+    {
+      "path": "dump_details/rollout_data/24.pt",
+      "size": 6198927
+    },
+    {
+      "path": "dump_details/rollout_data/25.pt",
+      "size": 6234767
+    },
+    {
+      "path": "dump_details/rollout_data/26.pt",
+      "size": 6043279
+    },
+    {
+      "path": "dump_details/rollout_data/27.pt",
+      "size": 4486863
+    },
+    {
+      "path": "dump_details/rollout_data/28.pt",
+      "size": 3776399
+    },
+    {
+      "path": "dump_details/rollout_data/29.pt",
+      "size": 5797199
+    },
+    {
+      "path": "dump_details/rollout_data/3.pt",
+      "size": 7529097
+    },
+    {
+      "path": "dump_details/rollout_data/30.pt",
+      "size": 5607311
+    },
+    {
+      "path": "dump_details/rollout_data/31.pt",
+      "size": 2688591
+    },
+    {
+      "path": "dump_details/rollout_data/32.pt",
+      "size": 6387407
+    },
+    {
+      "path": "dump_details/rollout_data/33.pt",
+      "size": 4975439
+    },
+    {
+      "path": "dump_details/rollout_data/34.pt",
+      "size": 5812879
+    },
+    {
+      "path": "dump_details/rollout_data/35.pt",
+      "size": 4546831
+    },
+    {
+      "path": "dump_details/rollout_data/36.pt",
+      "size": 4121807
+    },
+    {
+      "path": "dump_details/rollout_data/37.pt",
+      "size": 5167311
+    },
+    {
+      "path": "dump_details/rollout_data/38.pt",
+      "size": 3292175
+    },
+    {
+      "path": "dump_details/rollout_data/39.pt",
+      "size": 4622223
+    },
+    {
+      "path": "dump_details/rollout_data/4.pt",
+      "size": 8203785
+    },
+    {
+      "path": "dump_details/rollout_data/40.pt",
+      "size": 4281103
+    },
+    {
+      "path": "dump_details/rollout_data/41.pt",
+      "size": 4580879
+    },
+    {
+      "path": "dump_details/rollout_data/42.pt",
+      "size": 3030735
+    },
+    {
+      "path": "dump_details/rollout_data/43.pt",
+      "size": 4097039
+    },
+    {
+      "path": "dump_details/rollout_data/44.pt",
+      "size": 4146767
+    },
+    {
+      "path": "dump_details/rollout_data/45.pt",
+      "size": 3217423
+    },
+    {
+      "path": "dump_details/rollout_data/46.pt",
+      "size": 3154127
+    },
+    {
+      "path": "dump_details/rollout_data/47.pt",
+      "size": 2988687
+    },
+    {
+      "path": "dump_details/rollout_data/48.pt",
+      "size": 5855695
+    },
+    {
+      "path": "dump_details/rollout_data/49.pt",
+      "size": 5301711
+    },
+    {
+      "path": "dump_details/rollout_data/5.pt",
+      "size": 6356041
+    },
+    {
+      "path": "dump_details/rollout_data/6.pt",
+      "size": 3947337
+    },
+    {
+      "path": "dump_details/rollout_data/7.pt",
+      "size": 2888521
+    },
+    {
+      "path": "dump_details/rollout_data/8.pt",
+      "size": 4961289
+    },
+    {
+      "path": "dump_details/rollout_data/9.pt",
+      "size": 4434441
+    },
+    {
+      "path": "dump_details/rollout_data/eval_0.pt",
+      "size": 177714663
+    },
+    {
+      "path": "dump_details/rollout_data/eval_24.pt",
+      "size": 146311277
+    },
+    {
+      "path": "dump_details/rollout_data/eval_49.pt",
+      "size": 117318253
+    },
+    {
+      "path": "dump_details/tokenizer/chat_template.jinja",
+      "size": 7718
+    },
+    {
+      "path": "dump_details/tokenizer/tokenizer.json",
+      "size": 19989325
+    },
+    {
+      "path": "dump_details/tokenizer/tokenizer_config.json",
+      "size": 1124
+    },
+    {
+      "path": "dump_details/train_data/0_0.pt",
+      "size": 7747105
+    },
+    {
+      "path": "dump_details/train_data/10_0.pt",
+      "size": 6716936
+    },
+    {
+      "path": "dump_details/train_data/11_0.pt",
+      "size": 7063112
+    },
+    {
+      "path": "dump_details/train_data/12_0.pt",
+      "size": 4419144
+    },
+    {
+      "path": "dump_details/train_data/13_0.pt",
+      "size": 7587336
+    },
+    {
+      "path": "dump_details/train_data/14_0.pt",
+      "size": 6243912
+    },
+    {
+      "path": "dump_details/train_data/15_0.pt",
+      "size": 5588872
+    },
+    {
+      "path": "dump_details/train_data/16_0.pt",
+      "size": 6340488
+    },
+    {
+      "path": "dump_details/train_data/17_0.pt",
+      "size": 7895368
+    },
+    {
+      "path": "dump_details/train_data/18_0.pt",
+      "size": 4309448
+    },
+    {
+      "path": "dump_details/train_data/19_0.pt",
+      "size": 7229576
+    },
+    {
+      "path": "dump_details/train_data/1_0.pt",
+      "size": 6434977
+    },
+    {
+      "path": "dump_details/train_data/20_0.pt",
+      "size": 7721736
+    },
+    {
+      "path": "dump_details/train_data/21_0.pt",
+      "size": 9264968
+    },
+    {
+      "path": "dump_details/train_data/22_0.pt",
+      "size": 7049288
+    },
+    {
+      "path": "dump_details/train_data/23_0.pt",
+      "size": 5600584
+    },
+    {
+      "path": "dump_details/train_data/24_0.pt",
+      "size": 7571080
+    },
+    {
+      "path": "dump_details/train_data/25_0.pt",
+      "size": 7617032
+    },
+    {
+      "path": "dump_details/train_data/26_0.pt",
+      "size": 7371272
+    },
+    {
+      "path": "dump_details/train_data/27_0.pt",
+      "size": 5360584
+    },
+    {
+      "path": "dump_details/train_data/28_0.pt",
+      "size": 4587656
+    },
+    {
+      "path": "dump_details/train_data/29_0.pt",
+      "size": 6860552
+    },
+    {
+      "path": "dump_details/train_data/2_0.pt",
+      "size": 4240481
+    },
+    {
+      "path": "dump_details/train_data/30_0.pt",
+      "size": 6487624
+    },
+    {
+      "path": "dump_details/train_data/31_0.pt",
+      "size": 3203848
+    },
+    {
+      "path": "dump_details/train_data/32_0.pt",
+      "size": 7733640
+    },
+    {
+      "path": "dump_details/train_data/33_0.pt",
+      "size": 5988488
+    },
+    {
+      "path": "dump_details/train_data/34_0.pt",
+      "size": 7079880
+    },
+    {
+      "path": "dump_details/train_data/35_0.pt",
+      "size": 5409544
+    },
+    {
+      "path": "dump_details/train_data/36_0.pt",
+      "size": 5043208
+    },
+    {
+      "path": "dump_details/train_data/37_0.pt",
+      "size": 6322248
+    },
+    {
+      "path": "dump_details/train_data/38_0.pt",
+      "size": 3906888
+    },
+    {
+      "path": "dump_details/train_data/39_0.pt",
+      "size": 5547464
+    },
+    {
+      "path": "dump_details/train_data/3_0.pt",
+      "size": 9395297
+    },
+    {
+      "path": "dump_details/train_data/40_0.pt",
+      "size": 5272648
+    },
+    {
+      "path": "dump_details/train_data/41_0.pt",
+      "size": 5552648
+    },
+    {
+      "path": "dump_details/train_data/42_0.pt",
+      "size": 3630536
+    },
+    {
+      "path": "dump_details/train_data/43_0.pt",
+      "size": 4992968
+    },
+    {
+      "path": "dump_details/train_data/44_0.pt",
+      "size": 5076488
+    },
+    {
+      "path": "dump_details/train_data/45_0.pt",
+      "size": 3929288
+    },
+    {
+      "path": "dump_details/train_data/46_0.pt",
+      "size": 3876360
+    },
+    {
+      "path": "dump_details/train_data/47_0.pt",
+      "size": 3641736
+    },
+    {
+      "path": "dump_details/train_data/48_0.pt",
+      "size": 7256328
+    },
+    {
+      "path": "dump_details/train_data/49_0.pt",
+      "size": 6534792
+    },
+    {
+      "path": "dump_details/train_data/4_0.pt",
+      "size": 10034529
+    },
+    {
+      "path": "dump_details/train_data/5_0.pt",
+      "size": 7835681
+    },
+    {
+      "path": "dump_details/train_data/6_0.pt",
+      "size": 4797921
+    },
+    {
+      "path": "dump_details/train_data/7_0.pt",
+      "size": 3464225
+    },
+    {
+      "path": "dump_details/train_data/8_0.pt",
+      "size": 6028001
+    },
+    {
+      "path": "dump_details/train_data/9_0.pt",
+      "size": 5463329
+    },
+    {
+      "path": "dump_details/trajectory/0.jsonl",
+      "size": 1140719
+    },
+    {
+      "path": "dump_details/trajectory/1.jsonl",
+      "size": 931021
+    },
+    {
+      "path": "dump_details/trajectory/10.jsonl",
+      "size": 994076
+    },
+    {
+      "path": "dump_details/trajectory/11.jsonl",
+      "size": 1069996
+    },
+    {
+      "path": "dump_details/trajectory/12.jsonl",
+      "size": 697970
+    },
+    {
+      "path": "dump_details/trajectory/13.jsonl",
+      "size": 1174470
+    },
+    {
+      "path": "dump_details/trajectory/14.jsonl",
+      "size": 914755
+    },
+    {
+      "path": "dump_details/trajectory/15.jsonl",
+      "size": 836371
+    },
+    {
+      "path": "dump_details/trajectory/16.jsonl",
+      "size": 982468
+    },
+    {
+      "path": "dump_details/trajectory/17.jsonl",
+      "size": 1132223
+    },
+    {
+      "path": "dump_details/trajectory/18.jsonl",
+      "size": 669454
+    },
+    {
+      "path": "dump_details/trajectory/19.jsonl",
+      "size": 1070269
+    },
+    {
+      "path": "dump_details/trajectory/2.jsonl",
+      "size": 655963
+    },
+    {
+      "path": "dump_details/trajectory/20.jsonl",
+      "size": 1152322
+    },
+    {
+      "path": "dump_details/trajectory/21.jsonl",
+      "size": 1365047
+    },
+    {
+      "path": "dump_details/trajectory/22.jsonl",
+      "size": 1051592
+    },
+    {
+      "path": "dump_details/trajectory/23.jsonl",
+      "size": 845043
+    },
+    {
+      "path": "dump_details/trajectory/24.jsonl",
+      "size": 1129649
+    },
+    {
+      "path": "dump_details/trajectory/25.jsonl",
+      "size": 1138446
+    },
+    {
+      "path": "dump_details/trajectory/26.jsonl",
+      "size": 1101161
+    },
+    {
+      "path": "dump_details/trajectory/27.jsonl",
+      "size": 863964
+    },
+    {
+      "path": "dump_details/trajectory/28.jsonl",
+      "size": 700585
+    },
+    {
+      "path": "dump_details/trajectory/29.jsonl",
+      "size": 1040522
+    },
+    {
+      "path": "dump_details/trajectory/3.jsonl",
+      "size": 1303731
+    },
+    {
+      "path": "dump_details/trajectory/30.jsonl",
+      "size": 984848
+    },
+    {
+      "path": "dump_details/trajectory/31.jsonl",
+      "size": 500911
+    },
+    {
+      "path": "dump_details/trajectory/32.jsonl",
+      "size": 1130512
+    },
+    {
+      "path": "dump_details/trajectory/33.jsonl",
+      "size": 897438
+    },
+    {
+      "path": "dump_details/trajectory/34.jsonl",
+      "size": 1036949
+    },
+    {
+      "path": "dump_details/trajectory/35.jsonl",
+      "size": 824015
+    },
+    {
+      "path": "dump_details/trajectory/36.jsonl",
+      "size": 751888
+    },
+    {
+      "path": "dump_details/trajectory/37.jsonl",
+      "size": 942730
+    },
+    {
+      "path": "dump_details/trajectory/38.jsonl",
+      "size": 636678
+    },
+    {
+      "path": "dump_details/trajectory/39.jsonl",
+      "size": 860960
+    },
+    {
+      "path": "dump_details/trajectory/4.jsonl",
+      "size": 1476330
+    },
+    {
+      "path": "dump_details/trajectory/40.jsonl",
+      "size": 770770
+    },
+    {
+      "path": "dump_details/trajectory/41.jsonl",
+      "size": 848877
+    },
+    {
+      "path": "dump_details/trajectory/42.jsonl",
+      "size": 580047
+    },
+    {
+      "path": "dump_details/trajectory/43.jsonl",
+      "size": 759316
+    },
+    {
+      "path": "dump_details/trajectory/44.jsonl",
+      "size": 757039
+    },
+    {
+      "path": "dump_details/trajectory/45.jsonl",
+      "size": 594041
+    },
+    {
+      "path": "dump_details/trajectory/46.jsonl",
+      "size": 574336
+    },
+    {
+      "path": "dump_details/trajectory/47.jsonl",
+      "size": 555831
+    },
+    {
+      "path": "dump_details/trajectory/48.jsonl",
+      "size": 1033948
+    },
+    {
+      "path": "dump_details/trajectory/49.jsonl",
+      "size": 951624
+    },
+    {
+      "path": "dump_details/trajectory/5.jsonl",
+      "size": 1135574
+    },
+    {
+      "path": "dump_details/trajectory/6.jsonl",
+      "size": 737378
+    },
+    {
+      "path": "dump_details/trajectory/7.jsonl",
+      "size": 561918
+    },
+    {
+      "path": "dump_details/trajectory/8.jsonl",
+      "size": 922432
+    },
+    {
+      "path": "dump_details/trajectory/9.jsonl",
+      "size": 799175
+    },
+    {
+      "path": "dump_details/trajectory/eval_0.jsonl",
+      "size": 32136070
+    },
+    {
+      "path": "dump_details/trajectory/eval_24.jsonl",
+      "size": 26443996
+    },
+    {
+      "path": "dump_details/trajectory/eval_49.jsonl",
+      "size": 21164935
+    }
+  ],
+  "total_bytes": 119503599613,
+  "git_head": "99b756e62dc9cd42c6e4d58cebaeedb6ee3f7467",
+  "git_status": " M examples/experimental/alfworld/README.md\n M scripts/run_qwen3_5_4b_alfworld.py\n M tests/snapshots/launch_scripts/py/scripts/run_qwen3_5_4b_alfworld.py/execute.txt\n?? examples/experimental/alfworld/benchmark_metrics.py\n?? examples/experimental/alfworld/token_metrics.py\n?? tests/fast/alfworld/test_benchmark_metrics.py\n?? tests/fast/alfworld/test_token_metrics.py\n",
+  "changed_file_sha256": {
+    "examples/experimental/alfworld/README.md": "bed994be6cfebeb3c3a057baab0c192335a8f9b5ac93601ad7c3a35dc0318805",
+    "scripts/run_qwen3_5_4b_alfworld.py": "7779338006b29a76d854e8626940a4c6399d9fbcbaf626f07e9da15546940e37",
+    "examples/experimental/alfworld/token_metrics.py": "efd4cf1cebaf9204fdf2fd0850c91fb584bc4fd0373cf3c8940d3afa98a58fbb",
+    "examples/experimental/alfworld/benchmark_metrics.py": "c135879690a5c78c763967935211044b5f7084d02fa31338c2481216135c3566",
+    "tests/fast/alfworld/test_token_metrics.py": "9c32183b00d1e2bd6dc114f1cd8eeb9642e413655b40ac177476f260619fd592",
+    "tests/fast/alfworld/test_benchmark_metrics.py": "609c56f9889c5547009cfcd40e17999bce4fb2b062a10a530b7a5c2461153531",
+    "tests/snapshots/launch_scripts/py/scripts/run_qwen3_5_4b_alfworld.py/execute.txt": "9f97e5a63b24d32e4b05a48466fef2465745bcd87182d5aa1551dd6b85afdf24"
+  }
+}

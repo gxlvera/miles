@@ -1,0 +1,20 @@
+import argparse
+from pathlib import Path
+
+import modal
+
+parser = argparse.ArgumentParser()
+parser.add_argument('file')
+parser.add_argument('--upload')
+parser.add_argument('--timeout', type=int, default=180)
+args = parser.parse_args()
+sb = modal.Sandbox.from_name('miles-dev', 'dev')
+code = Path(args.file).read_text()
+if args.upload:
+    p = sb.exec('python', '-c', 'from pathlib import Path; import sys; p=Path(sys.argv[1]); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(sys.argv[2]); print(p)', args.upload, code, timeout=60)
+else:
+    p = sb.exec('python', '-u', '-c', code, timeout=args.timeout, workdir='/workspace/miles')
+for line in p.stdout:
+    print(line, end='', flush=True)
+print(p.stderr.read(), end='')
+raise SystemExit(p.wait())

@@ -1,0 +1,11 @@
+from pathlib import Path
+p=Path('/workspace/experiments/alfworld/alfworld_session_server/train.log')
+lines=p.read_text(errors='replace').splitlines()
+indices=[i for i,s in enumerate(lines) if 'Traceback' in s]
+for i in indices:
+    print('TRACEBACK AT LINE',i)
+    for s in lines[i+1:i+26]:
+        if not any(x in s for x in ['Error:', 'Exception:', 'TimeoutExpired:', 'git_state.py', 'Traceback']):
+            continue
+        if not any(x in s for x in ['wandb-key','WANDB_API_KEY','wandb_v1_','Running entrypoint','EXEC:']):
+            print(s[:1800])

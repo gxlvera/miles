@@ -1,0 +1,8 @@
+import ray, inspect
+ray.init(address='auto', log_to_driver=False)
+c = ray._private.worker.global_worker.core_worker
+for name in dir(c):
+    if 'actor_handle' in name:
+        fn = getattr(c,name)
+        print(name, inspect.signature(fn), inspect.getdoc(fn))
+ray.shutdown()

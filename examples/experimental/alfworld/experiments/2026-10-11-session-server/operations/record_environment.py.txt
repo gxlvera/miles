@@ -1,0 +1,11 @@
+import hashlib,importlib.metadata,json,platform,subprocess,sys
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+report={'python':sys.version,'executable':sys.executable,'platform':platform.platform(),'packages':sorted([{'name':d.metadata.get('Name'),'version':d.version} for d in importlib.metadata.distributions()],key=lambda x:(x['name'] or '').lower()),'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=name,memory.total,driver_version','--format=csv,noheader'],text=True).splitlines(),'repositories':{}}
+for name,path in [('miles','/workspace/miles'),('megatron','/root/Megatron-LM'),('sglang','/sgl-workspace/sglang')]:
+    p=Path(path)
+    if p.exists():
+        r=subprocess.run(['git','rev-parse','HEAD'],cwd=p,capture_output=True,text=True,timeout=15)
+        report['repositories'][name]={'path':path,'commit':r.stdout.strip(),'git_returncode':r.returncode}
+(root/'environment_manifest.json').write_text(json.dumps(report,indent=2))
+print('Recorded environment',len(report['packages']),'packages')

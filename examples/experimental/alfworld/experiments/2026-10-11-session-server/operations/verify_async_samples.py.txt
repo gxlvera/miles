@@ -1,0 +1,19 @@
+import json
+from pathlib import Path
+import torch
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+report=[]
+for i in range(3):
+    path=root/'dump_details/rollout_data'/f'{i}.pt'
+    if not path.exists(): continue
+    data=torch.load(path,map_location='cpu',weights_only=False)
+    samples=data['samples']
+    versions=[{int(s['version']) for call in x.get('weight_versions',[]) for s in call} for x in samples]
+    assert len(samples)==32, len(samples)
+    assert all(len(v)==1 for v in versions), 'Missing or mixed weight versions'
+    lags=[i+1-next(iter(v)) for v in versions]
+    assert all(0<=v<=1 for v in lags), lags
+    row={'rollout_id':i,'episodes':len(samples),'weight_versions':sorted(set.union(*versions)), 'policy_lag_steps_min':min(lags),'policy_lag_steps_max':max(lags), 'valid_behavior_logprobs':all(x.get('rollout_log_probs') is not None and len(x['rollout_log_probs'])==x['response_length'] for x in samples)}
+    report.append(row)
+print(json.dumps(report,indent=2))
+if report: (root/'async_sample_verification.json').write_text(json.dumps(report,indent=2))

@@ -1,0 +1,101 @@
+"""Install W&B defaults for the Modal Miles Sandbox; credentials stay in Modal Secret."""
+import modal
+
+SECRET_NAME = 'miles-wandb'
+WANDB_ENV = {
+    'WANDB_BASE_URL': 'https://api.wandb.ai',
+    'WANDB_ENTITY': 'xiaoleg-carnegie-mellon-university',
+    'WANDB_PROJECT': 'humans&take-home',
+    'WANDB_MODE': 'online',
+    'WANDB_DIR': '/workspace/wandb',
+    'WANDB_DISABLE_CODE': 'true',
+}
+
+REMOTE_SETUP = r'''
+import configparser
+import contextlib
+import io
+import json
+import os
+import shlex
+import sysconfig
+from pathlib import Path
+
+import wandb
+
+settings = {name: os.environ[name] for name in (
+    'WANDB_BASE_URL', 'WANDB_ENTITY', 'WANDB_PROJECT',
+    'WANDB_MODE', 'WANDB_DIR', 'WANDB_DISABLE_CODE',
+)}
+# The current container needs a conventional login file; replacements receive
+# the API key directly from Modal Secret at container creation.
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    assert wandb.login(key=os.environ['WANDB_API_KEY'], host=settings['WANDB_BASE_URL'], relogin=True, verify=True)
+Path('/root/.netrc').chmod(0o600)
+Path(settings['WANDB_DIR']).mkdir(parents=True, exist_ok=True)
+config_dir = Path('/workspace/.config/miles-wandb')
+config_dir.mkdir(parents=True, exist_ok=True)
+(config_dir / 'defaults.json').write_text(json.dumps(settings, indent=2))
+
+# Make SDK exec calls, Python scripts, and Ray workers see the same defaults.
+# The persistent defaults contain no API key. The login token remains in /root.
+module = """import netrc
+import os
+from urllib.parse import urlparse
+
+DEFAULTS = %r
+for name, value in DEFAULTS.items():
+    os.environ.setdefault(name, value)
+if not os.environ.get('WANDB_API_KEY'):
+    try:
+        auth = netrc.netrc('/root/.netrc').authenticators(urlparse(os.environ['WANDB_BASE_URL']).netloc)
+    except (OSError, netrc.NetrcParseError):
+        auth = None
+    if auth:
+        os.environ['WANDB_API_KEY'] = auth[2]
+""" % settings
+site = Path(sysconfig.get_path('purelib'))
+(site / 'modal_miles_wandb_defaults.py').write_text(module)
+(site / '001_modal_miles_wandb.pth').write_text('import modal_miles_wandb_defaults\n')
+
+shell = '# W&B defaults for the Miles development Sandbox.\n'
+for name, value in settings.items():
+    shell += f'export {name}={shlex.quote(value)}\n'
+shell += "if [ -z \"${WANDB_API_KEY:-}\" ]; then\n"
+shell += "    export WANDB_API_KEY=\"$(python -c 'import os; print(os.environ.get(\"WANDB_API_KEY\", \"\"))')\"\nfi\n"
+profile = Path('/etc/profile.d/miles-wandb.sh')
+profile.write_text(shell)
+marker = '\n# Modal Miles W&B defaults\n[ ! -f /etc/profile.d/miles-wandb.sh ] || . /etc/profile.d/miles-wandb.sh\n'
+for target in ('/root/.bashrc', '/root/.zshrc'):
+    p = Path(target)
+    text = p.read_text() if p.exists() else ''
+    if '# Modal Miles W&B defaults' not in text:
+        p.write_text(text + marker)
+
+# Store ordinary W&B CLI defaults as well.
+p = Path('/root/.config/wandb/settings')
+p.parent.mkdir(parents=True, exist_ok=True)
+cfg = configparser.ConfigParser()
+if p.exists():
+    cfg.read(p)
+if not cfg.has_section('default'):
+    cfg.add_section('default')
+for name, value in [('base_url', settings['WANDB_BASE_URL']), ('entity', settings['WANDB_ENTITY']), ('project', settings['WANDB_PROJECT'])]:
+    cfg.set('default', name, value)
+with p.open('w') as f:
+    cfg.write(f)
+print(json.dumps({'configured': True, 'entity': settings['WANDB_ENTITY'], 'project': settings['WANDB_PROJECT'], 'base_url': settings['WANDB_BASE_URL']}))
+'''
+
+
+def configure_sandbox(sb):
+    p = sb.exec('python', '-u', '-c', REMOTE_SETUP,
+                env=WANDB_ENV, secrets=[modal.Secret.from_name(SECRET_NAME)], timeout=120)
+    output, error = p.stdout.read(), p.stderr.read()
+    if p.wait() != 0:
+        raise RuntimeError('W&B setup failed; authentication or network access needs checking.')
+    print(output.strip())
+
+
+if __name__ == '__main__':
+    configure_sandbox(modal.Sandbox.from_name('miles-dev', 'dev'))

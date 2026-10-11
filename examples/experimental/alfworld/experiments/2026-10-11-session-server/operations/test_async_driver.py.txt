@@ -1,0 +1,8 @@
+import os,subprocess
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+env=dict(os.environ,PYTHONPATH='/workspace/miles:/root/Megatron-LM',OMP_NUM_THREADS='1')
+with (root/'async-driver-tests.log').open('w') as f:
+    r=subprocess.run(['pytest','tests/fast/test_train_async.py','tests/fast/alfworld','-q','--tb=short'],env=env,stdout=f,stderr=subprocess.STDOUT,timeout=240)
+print((root/'async-driver-tests.log').read_text()[-5000:])
+assert r.returncode==0

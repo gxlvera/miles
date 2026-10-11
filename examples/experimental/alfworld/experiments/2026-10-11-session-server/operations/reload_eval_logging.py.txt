@@ -1,0 +1,33 @@
+import json
+from pathlib import Path
+import ray
+from ray.util.state import list_actors
+ray.init(address='auto',log_to_driver=False)
+actors = [a for a in list_actors(filters=[('class_name','=','RolloutExecutor'),('state','=','ALIVE')],detail=True)]
+assert len(actors)==1, len(actors)
+a=actors[0]
+manager=ray.get_actor('ray_worker_manager',namespace=a.ray_namespace)
+infos=ray.get(manager.get_worker_infos.remote('rollout-executor-00000'),timeout=15)
+assert len(infos)==1
+actor=ray.get(manager.get_actor_handle.remote(infos[0].name,expected_generation=infos[0].generation),timeout=15)
+assert actor._actor_id.hex()==a.actor_id
+def reload_logging(self):
+    import hashlib, importlib, inspect, sys
+    from pathlib import Path
+    from types import SimpleNamespace
+    expected='examples.experimental.alfworld.token_metrics'
+    assert self.args.custom_eval_rollout_log_function_path == expected+'.log_eval'
+    module=importlib.reload(sys.modules[expected]) if expected in sys.modules else importlib.import_module(expected)
+    sample=SimpleNamespace(tokens=[1,2,3,4,5,6],response_length=4,loss_mask=[1,0,1,1],metadata={'num_turns':2,'task_success':True},index=0)
+    metrics,_=module._summarize([sample],include_turn_positions=False)
+    assert not any(k.startswith('turn_') for k in metrics)
+    assert metrics['per_turn/assistant_tokens/mean']==1.5
+    assert 'include_turn_positions=False' in inspect.getsource(module.log_eval)
+    return {'reloaded':True,'rollout_id':self.rollout_id,'module':module.__file__,'sha256':hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest(),'eval_logging':'cross_turn_averages_only','metric_keys':sorted(metrics)}
+result=ray.get(actor.__ray_call__.remote(reload_logging),timeout=60)
+result['actor_id']=a.actor_id
+result['pid']=a.pid
+out=Path('/workspace/experiments/alfworld/alfworld_session_server/eval_logging_updated.json')
+out.write_text(json.dumps(result,indent=2))
+print(json.dumps(result,indent=2))
+ray.shutdown()

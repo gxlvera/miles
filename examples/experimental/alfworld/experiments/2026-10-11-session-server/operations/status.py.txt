@@ -1,0 +1,29 @@
+import json
+import os
+import re
+import subprocess
+from pathlib import Path
+
+root = Path('/workspace/experiments/alfworld/alfworld_session_server')
+status = root / 'process.json'
+if status.exists():
+    info = json.loads(status.read_text())
+    try:
+        os.kill(info['pid'], 0)
+        info['alive'] = True
+    except ProcessLookupError:
+        info['alive'] = False
+    print('PROCESS', info)
+for name in ['train.log']:
+    p = root / name
+    if p.exists():
+        print('LOG', name, 'BYTES', p.stat().st_size)
+        lines = p.read_text(errors='replace').splitlines()
+        events = [line for line in lines if any(word in line for word in ['Eval alfworld', 'ALFWorld token lengths', 'eval 0:', 'Rollout-side DP', 'Error:', 'Exception:', 'Job failed', 'Job succeeded', 'saving checkpoint', 'successfully saved', 'Traceback', 'AssertionError']) and 'EXEC:' not in line and 'Running entrypoint' not in line]
+        for line in (events[-4:] + lines[-2:]):
+            if 'wandb-key' in line or 'WANDB_API_KEY' in line or 'wandb_v1_' in line:
+                print('[credential-related line omitted]')
+            else:
+                print(line[:1400])
+print(subprocess.check_output(['nvidia-smi','--query-gpu=index,utilization.gpu,memory.used','--format=csv,noheader'], text=True))
+print('METRICS', [p.name for p in sorted((root / 'token_metrics').glob('*.json'))][-8:])

@@ -1,0 +1,13 @@
+"""Terminate compute while retaining the h100-dev-files Volume."""
+
+import modal
+from start_dev import APP_NAME, SANDBOX_NAME
+
+try:
+    sb = modal.Sandbox.from_name(APP_NAME, SANDBOX_NAME)
+except modal.exception.NotFoundError:
+    print("No running development Sandbox.")
+else:
+    print(f"Stopping {sb.object_id} and waiting for termination...")
+    sb.terminate(wait=True)
+    print("Sandbox stopped. The persistent Volume is retained.")

@@ -1,0 +1,8 @@
+from pathlib import Path
+import re,requests
+lines=Path('/workspace/experiments/alfworld/alfworld_session_server/train.log').read_text(errors='replace').splitlines()
+for s in [x for x in lines if any(k in x for k in ['fully initialized','Uvicorn running','Application startup complete','freeze_gc','successfully loaded','Loaded checkpoint','NCCL','model and optimizer','loading checkpoint'])][-14:]:
+    if not any(k in s for k in ['EXEC:','Running entrypoint','wandb-key','WANDB_API_KEY','wandb_v1_']):print(s[:1200])
+for port in [20005]:
+    try:print('ENGINE_HEALTH',port,requests.get(f'http://172.20.0.13:{port}/health',timeout=5).status_code)
+    except requests.RequestException as e:print('ENGINE_HEALTH',port,type(e).__name__)

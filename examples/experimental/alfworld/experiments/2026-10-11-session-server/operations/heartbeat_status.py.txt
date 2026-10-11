@@ -1,0 +1,19 @@
+import json,re
+from pathlib import Path
+import wandb
+from ray.job_submission import JobSubmissionClient
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+process=json.loads((root/'process.json').read_text())
+log=(root/'train.log').read_text(errors='replace')
+job=re.findall(r'raysubmit_[A-Za-z0-9]+',log)[-1]
+report={'job':job,'job_status':str(JobSubmissionClient('http://127.0.0.1:8265').get_job_status(job))}
+tracker=root/'checkpoints/latest_checkpointed_iteration.txt'
+report['checkpoint_iteration']=tracker.read_text().strip() if tracker.exists() else None
+report['checkpoint_dirs']=[p.name for p in (root/'checkpoints').glob('iter_*')]
+report['eval_metrics_files']=[p.name for p in (root/'token_metrics').glob('eval*.json')]
+report['eval_progress']=[s[-500:] for s in re.split('[\r\n]',log) if '1066' in s and ('%' in s or 'ALFWorld token lengths' in s)][-3:]
+report['recent_errors']=[s[-600:] for s in log.splitlines() if any(t in s for t in ['Traceback (most recent call last)', 'CUDA error:', 'OutOfMemoryError', 'RayTaskError'])][-4:]
+r=wandb.Api(timeout=20).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+report['wandb']={k:v for k,v in dict(r.summary).items() if k in ['eval/step','eval/alfworld_holdout30','train/step','rollout/step','train/loss','train/grad_norm']}
+(root/'heartbeat_status.json').write_text(json.dumps(report,indent=2))
+print(json.dumps(report,indent=2))

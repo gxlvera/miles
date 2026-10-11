@@ -1,0 +1,37 @@
+{
+  "status": "cancelled_by_user_before_gpu_benchmarks",
+  "order": [
+    "per_turn",
+    "turn_merge"
+  ],
+  "optimizer_steps_each": 5,
+  "same_initial_checkpoint": true,
+  "source_prompts_per_batch": 4,
+  "episodes_per_prompt": 8,
+  "gpu_layout": {
+    "train_h100": 4,
+    "rollout_h100": 4
+  },
+  "max_policy_lag_steps": 1,
+  "rollout_hook": "examples.experimental.alfworld.benchmark_metrics.log_rollout",
+  "metrics": [
+    "samples_per_source_prompt",
+    "samples_per_episode",
+    "samples",
+    "tokens_total",
+    "tokens_repeated_history",
+    "repeated_history_fraction",
+    "assistant_trainable_tokens",
+    "rollout_seconds"
+  ],
+  "training_timing": [
+    "perf/actor_train_time",
+    "perf/train_time",
+    "perf/step_time",
+    "perf/update_weights_time"
+  ],
+  "timing_note": "Native step_time = train_wait_time + train_time; verify first-step startup and final weight publication boundaries when reporting end-to-end durations. Do not sum overlapping rollout and train time.",
+  "must_wait_for_main_experiment": false,
+  "validation": "10 passed: benchmark metric tests and native per-turn tests",
+  "cancellation_reason": "User moved the comparison to another session and dataset."
+}

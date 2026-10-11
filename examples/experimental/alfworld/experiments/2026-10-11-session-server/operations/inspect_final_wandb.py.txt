@@ -1,0 +1,13 @@
+import json,re
+from pathlib import Path
+import wandb
+from ray.job_submission import JobSubmissionClient
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+run=wandb.Api(timeout=30).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+print('STATE',run.state)
+print('HISTORY',list(run.scan_history(keys=['eval/step','eval/alfworld_holdout30'],page_size=100)))
+print('CUSTOM',list(run.scan_history(keys=['eval/step','eval/alfworld_holdout30/tokens/episode/success_rate'],page_size=100)))
+lines=(root/'train.log').read_text(errors='replace').splitlines()
+for line in lines[-150:]:
+    if any(s in line for s in ['eval 49:', 'wandb:', 'successfully', 'SUCCEEDED', 'Error', 'exit', 'Training']):
+        print(re.sub(r'wandb_v1_[A-Za-z0-9_-]+','<REDACTED>',line))

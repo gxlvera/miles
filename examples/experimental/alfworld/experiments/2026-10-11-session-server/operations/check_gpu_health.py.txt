@@ -1,0 +1,24 @@
+import json
+import re
+import subprocess
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+raw = subprocess.check_output(['nvidia-smi', '-q', '-x'], text=True)
+root = ET.fromstring(raw)
+for gpu in root.findall('gpu'):
+    print('GPU', gpu.attrib.get('id'), gpu.findtext('product_name'))
+    for name in ['ecc_mode', 'ecc_errors', 'retired_pages', 'remapped_rows', 'gpu_recovery_action', 'utilization', 'fb_memory_usage']:
+        node = gpu.find(name)
+        if node is not None:
+            print(ET.tostring(node, encoding='unicode').strip())
+path = Path('/workspace/experiments/alfworld/alfworld_session_server/train.log')
+lines = path.read_text(errors='replace').splitlines()
+errors = [x for x in lines if re.search(r'Traceback|CUDA error|uncorrectable|uncorrected|ECC error|out of memory|OutOfMemory|NCCL.*(?:error|failed)|Job failed|AssertionError', x, re.I)]
+print('ERROR_MATCH_COUNT', len(errors))
+for line in errors[-12:]:
+    if not any(x in line for x in ['wandb-key','WANDB_API_KEY','wandb_v1_']):
+        print(line[:1000])
+print('RAY_JOB_STATUS')
+p = subprocess.run(['ray','job','status','--address=http://127.0.0.1:8265','raysubmit_PA2V9i7fqQwkb6pE'], capture_output=True, text=True, timeout=25)
+print(p.stdout[-2000:], p.stderr[-1000:])

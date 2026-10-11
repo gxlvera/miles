@@ -1,0 +1,37 @@
+"""Run only after the complete step-50 eval has been persisted."""
+import ast
+import json
+from pathlib import Path
+
+import torch
+import wandb
+from ray.job_submission import JobSubmissionClient
+
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+tracker=int((root/'checkpoints/latest_checkpointed_iteration.txt').read_text())
+assert tracker==49, f'Final checkpoint not ready: {tracker}'
+assert (root/'token_metrics/eval_alfworld_holdout30_tokens_000049.json').exists(), 'Final eval not ready'
+api=wandb.Api(timeout=30)
+run=api.run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+history=list(run.scan_history(keys=['eval/step','eval/alfworld_holdout30'],page_size=100))
+log=(root/'train.log').read_text(errors='replace')
+rows=[]
+for completed,index in [(0,0),(25,24),(50,49)]:
+    token=json.loads((root/f'token_metrics/eval_alfworld_holdout30_tokens_{index:06d}.json').read_text())
+    samples=torch.load(root/f'dump_details/rollout_data/eval_{index}.pt',map_location='cpu',weights_only=False)['samples']
+    assert len(samples)==1066
+    rewards=[s['reward'] for s in samples]
+    assert all(r in (0,1) for r in rewards)
+    assert all(float(s['reward'])==float(s['metadata']['task_success']) for s in samples)
+    success=sum(rewards); score=success/len(samples)
+    assert abs(score-token['metrics']['episode/success_rate'])<1e-12
+    assert any(h['eval/step']==index and abs(h['eval/alfworld_holdout30']-score)<1e-12 for h in history), f'W&B history missing eval{index}'
+    rows.append({'completed_optimizer_updates':completed,'native_eval_step':index,'successes':int(success),'episodes':len(samples),'success_rate':score,'token_metrics':token['metrics']})
+    if index:
+        lines=[line for line in log.splitlines() if f' - eval {index}: ' in line]
+        native=ast.literal_eval(lines[-1].split(f' - eval {index}: ',1)[1])
+        assert abs(native['eval/alfworld_holdout30']-score)<1e-12
+        (root/f'eval{completed}_standard_metrics.json').write_text(json.dumps(native,indent=2))
+report={'status':'step50_eval_verified','run_id':'6067854d','wandb_url':'https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/6067854d','evaluations':rows,'improvement_from_initial_percentage_points':100*(rows[-1]['success_rate']-rows[0]['success_rate']),'change_from_step25_percentage_points':100*(rows[-1]['success_rate']-rows[1]['success_rate']),'checkpoint_path':str(root/'checkpoints/iter_0000049'),'checkpoint_index':tracker,'benchmark_comparison':'cancelled_by_user_not_run','wandb_eval_history':history,'wandb_state_at_verification':run.state}
+(root/'final_results.json').write_text(json.dumps(report,indent=2))
+print(json.dumps(report,indent=2))

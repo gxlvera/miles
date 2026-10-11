@@ -1,0 +1,10 @@
+import json
+from pathlib import Path
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+d=json.loads((root/'baseline_verified.json').read_text())
+print('BASELINE', {k:v for k,v in d['metrics'].items() if not k.startswith('turn_')})
+r=wandb.Api(timeout=20).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+print('W&B', {k:v for k,v in dict(r.summary).items() if k in ['eval/alfworld_holdout30','eval/step'] or 'per_turn/' in k})
+text=(root/'train.log').read_text(errors='replace')
+print('TRAIN_STEPS', [x[:700] for x in text.splitlines() if 'train 0:' in x or 'train/step' in x and 'EXEC:' not in x][-3:])

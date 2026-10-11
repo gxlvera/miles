@@ -1,0 +1,16 @@
+"""Connect to the running development Sandbox without creating a new one."""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import modal
+from start_dev import APP_NAME, SANDBOX_NAME
+
+try:
+    sb = modal.Sandbox.from_name(APP_NAME, SANDBOX_NAME)
+except modal.exception.NotFoundError:
+    raise SystemExit("No running Sandbox. Run start_dev.py to create one.")
+
+modal_cli = str(Path(sys.executable).parent / "modal")
+raise SystemExit(subprocess.call([modal_cli, "shell", sb.object_id]))

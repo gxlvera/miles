@@ -1,0 +1,80 @@
+"""Use the repository's ALFWorld launcher with a fixed 30% holdout."""
+import argparse
+import json
+import os
+import shlex
+import uuid
+from dataclasses import asdict
+from pathlib import Path
+
+from scripts.run_qwen3_5_4b_alfworld import ScriptArgs, execute
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--steps', type=int, default=50)
+parser.add_argument('--resume', action='store_true')
+parser.add_argument('--dry-run', action='store_true')
+parser.add_argument('--baseline-complete', action='store_true')
+cli = parser.parse_args()
+run_dir = Path('/workspace/experiments/alfworld/alfworld_session_server')
+run_dir.mkdir(parents=True, exist_ok=True)
+id_file = run_dir / 'wandb_run_id.txt'
+if not id_file.exists():
+    id_file.write_text(uuid.uuid4().hex[:8])
+wandb_id = id_file.read_text().strip()
+extra = [
+    '--save-interval', '25',
+    '--eval-interval', '25',
+    '--eval-prompt-data', 'alfworld_holdout30', '/workspace/datasets/alfworld-70-30/alfworld/eval.jsonl',
+    '--n-samples-per-eval-prompt', '1',
+    '--eval-temperature', '0',
+    '--eval-max-response-len', '4096',
+    '--sglang-server-concurrency', '4',
+    '--custom-rollout-log-function-path', 'examples.experimental.alfworld.token_metrics.log_rollout',
+    '--custom-eval-rollout-log-function-path', 'examples.experimental.alfworld.token_metrics.log_eval',
+    '--use-wandb', '--wandb-team', 'xiaoleg-carnegie-mellon-university',
+    '--wandb-project', 'humans&take-home',
+    '--wandb-group', 'alfworld_session_server', '--disable-wandb-random-suffix',
+    '--wandb-mode', 'online', '--wandb-run-id', wandb_id,
+]
+if cli.resume:
+    assert (run_dir / 'checkpoints/latest_checkpointed_iteration.txt').exists()
+    extra.append('--skip-eval-before-train')
+elif cli.baseline_complete:
+    assert (run_dir / 'baseline_verified.json').exists()
+    extra.append('--skip-eval-before-train')
+args = ScriptArgs(
+    model_dir='/workspace/models', data_dir='/workspace/datasets/alfworld-70-30',
+    output_dir='/workspace/experiments', run_id='alfworld_session_server',
+    num_gpus_per_node=8, tensor_model_parallel_size=4, num_rollout=cli.steps,
+    rollout_batch_size=4, n_samples_per_prompt=8, async_train=True,
+    per_turn_samples=False, extra_args=shlex.join(extra),
+)
+# Authenticate with the already configured netrc. Avoid serializing a secret in
+# command_utils.get_default_wandb_args; the explicit nonsecret flags enable W&B.
+os.environ.pop('WANDB_API_KEY', None)
+os.environ['MILES_SCRIPT_EXTERNAL_RAY'] = '1'
+os.environ['NCCL_NVLS_ENABLE'] = '0'
+(run_dir / f'config_{cli.steps}.json').write_text(json.dumps(asdict(args), indent=2, default=str))
+print(f'W&B: https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/{wandb_id}', flush=True)
+if cli.dry_run:
+    from unittest.mock import patch
+    from miles.utils.external_utils.command_utils.base_backend import BaseCommandBackend
+    with patch.object(BaseCommandBackend, 'execute_train') as mocked:
+        execute(args)
+        payload = mocked.call_args.kwargs
+        tokens = shlex.split(payload['train_args'])
+        assert '--wandb-key' not in tokens
+        assert '--skip-eval-before-train' not in tokens or cli.resume or cli.baseline_complete
+        assert payload['train_script'] == 'train_async.py'
+        assert '--colocate' not in tokens and '--fully-async' not in tokens
+        for flag, expected in {'--actor-num-gpus-per-node': '4', '--rollout-num-gpus': '4',
+                               '--global-batch-size': '32', '--rollout-batch-size': '4',
+                               '--n-samples-per-prompt': '8', '--num-steps-per-rollout': '1',
+                               '--update-weights-interval': '1'}.items():
+            assert tokens[tokens.index(flag) + 1] == expected, flag
+        assert tokens[tokens.index('--use-session-server') + 1] == 'v2'
+        assert tokens[tokens.index('--custom-generate-function-path') + 1] == 'miles.rollout.generate_hub.agentic_tool_call.generate'
+        (run_dir / f'launch_{cli.steps}.json').write_text(json.dumps(payload, indent=2))
+        print('DRY_RUN_VALIDATED', flush=True)
+else:
+    execute(args)

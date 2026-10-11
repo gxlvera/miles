@@ -1,0 +1,560 @@
+[
+  {
+    "path": "final_results.json",
+    "bytes": 11844,
+    "sha256": "d067a3b8a00cc2dc65bfaa2e9a1681bc457c4d7380cd72c41a848f56a578b417",
+    "redactions": 0
+  },
+  {
+    "path": "eval50_standard_metrics.json",
+    "bytes": 2007,
+    "sha256": "7c0795e894dc8fe9329796c9335f9f738569f74d67090503b5e8bf522bef0622",
+    "redactions": 0
+  },
+  {
+    "path": "eval25_standard_metrics.json",
+    "bytes": 1994,
+    "sha256": "3998fac7a9e2fbc825b7f1312859097f11bda76b8ea7e9331c5222d423715c9d",
+    "redactions": 0
+  },
+  {
+    "path": "final_wandb_recovery.json",
+    "bytes": 441,
+    "sha256": "dafe2de5c7a59a00103f87ffb7e60cd65f7890d085f8b028085df57f5506afb1",
+    "redactions": 0
+  },
+  {
+    "path": "archive_inventory_progress.json",
+    "bytes": 95210,
+    "sha256": "de3318e7c188c21e433e189c73083694bcce186d59b4e64b46d044b6c8807bc3",
+    "redactions": 0
+  },
+  {
+    "path": "train.log",
+    "bytes": 18798838,
+    "sha256": "ce08405df0686ba2cffc51b6e99f6869ce6163f5136d1b11a2e78496c15e48fa",
+    "redactions": 0
+  },
+  {
+    "path": "heartbeat_status.json",
+    "bytes": 1443,
+    "sha256": "e9ffdf96f3cf8233a3c3bb9db5e093abef85200d43b99724e574fd406a5084b1",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/eval_alfworld_holdout30_tokens_000049.json",
+    "bytes": 3452143,
+    "sha256": "b810d7664db836ec220be1027c0eac61337ff5c86a788d7b57cd667a3431d4ae",
+    "redactions": 0
+  },
+  {
+    "path": "checkpoint_manifest.json",
+    "bytes": 9455,
+    "sha256": "43d61a544b4c010eb24e8093a24a869a48883f8cc5982420c208ff94865442df",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000049.json",
+    "bytes": 130784,
+    "sha256": "eaac3b1d57ca6d68d18bb216479cb43c884d067d63183b73e48ff90768d434d0",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000048.json",
+    "bytes": 140417,
+    "sha256": "0c132c847dab67e5a1d3150c957d2f404669fbb7e26087eb17037b28e057cd56",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000047.json",
+    "bytes": 93546,
+    "sha256": "c2f12a3afdd1e25e59927c06343bf37cea2b7afab618b48b29b14515f06972ed",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000046.json",
+    "bytes": 93432,
+    "sha256": "22e92e72f9748eac146f1cce32db64585dc372cfcae73b8eb013c776352da2f4",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000045.json",
+    "bytes": 99098,
+    "sha256": "66c20e20bf05b1b57d8925a204c75fd26f0d65640cd7fa8be135c2840e4a7567",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000044.json",
+    "bytes": 119190,
+    "sha256": "fa3dbb6a981e08c064ec6c345a887fab0671bfe94fa2761c27c073689c9ea05f",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000043.json",
+    "bytes": 135556,
+    "sha256": "4f451f45023a0e6a074e20eac27fe946951530a4d69c46c62f09ae01a9a91405",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000042.json",
+    "bytes": 100807,
+    "sha256": "6d0b2472cdb6afc35b62eb2bf547125d15bf0386dcfea33b4db01e97dcaa57ee",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000041.json",
+    "bytes": 130765,
+    "sha256": "8b30c3938c92f48e4d308fec69a6346199d72e7941456174deb714c6d23ee5a7",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000040.json",
+    "bytes": 126241,
+    "sha256": "cf1ce8ee4474cc663b2ca04863ed187cf5b60702e39c1903cf0f38ef2c35d66c",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000039.json",
+    "bytes": 141624,
+    "sha256": "20d549ef543b47f21964b1f4d4e49a7d0348ba31d45b9758face77bb22fef22b",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000038.json",
+    "bytes": 115263,
+    "sha256": "eb99d3734fdd7612a988647dc13719fe5acbaab8156dd4fdb83ed6f5fec9421a",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000037.json",
+    "bytes": 129579,
+    "sha256": "b55d3775e50b39790df4e8adf904f2160ad81b5b75f426abf4176d3c762958f2",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000036.json",
+    "bytes": 122514,
+    "sha256": "59347aa4e2296a7a7817ceb43b6992cadb01b184be47aa7257cfe468f8ab4edd",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000035.json",
+    "bytes": 121398,
+    "sha256": "d550ace49d099f40e3825e909aa530f8327a9650b899628256e96c59843d424b",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000034.json",
+    "bytes": 145463,
+    "sha256": "9afae4c2e0af07e40e94e0bddeac2c3dacf5c879480714d44f6e6676d7cc2786",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000033.json",
+    "bytes": 133960,
+    "sha256": "5c47cf704ab815539649bd6a023fb7a5fb6668189aa604fd7accf33a0f97e32a",
+    "redactions": 0
+  },
+  {
+    "path": "environment_manifest.json",
+    "bytes": 32045,
+    "sha256": "f00cef47581370b56502d49cb92be4cc344a800e6224355eeb2c209061f52468",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000032.json",
+    "bytes": 169051,
+    "sha256": "bc44fafe3f985f5524a49d377f8427eb90c8966db894fc55ab9ed71c51d78eb0",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000031.json",
+    "bytes": 95774,
+    "sha256": "1c78c9a1d3619b059afc2a5c217ca19610859c202ccdcee7c3266bc0c449d1e0",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000030.json",
+    "bytes": 144805,
+    "sha256": "daf569624484ed4ad778ebaba7881168d0540e1d812852b70e4dd63ebfeae3a4",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000029.json",
+    "bytes": 160696,
+    "sha256": "561484d52823e54b49c0a03c317b07c3d49f0d72acca9c469bb6c7c5e6451cf2",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000028.json",
+    "bytes": 128517,
+    "sha256": "736ad3d8e4d4fccec23bd6c1a222fd2f95adeb858af4cb67869773def43538fa",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000027.json",
+    "bytes": 153658,
+    "sha256": "55e8db544bb4ae49c0beeb2a6ea53b35c38e82b99a2f6cc2c0c27a0018951e83",
+    "redactions": 0
+  },
+  {
+    "path": "eval25_verified.json",
+    "bytes": 744,
+    "sha256": "adac873656268b7726eb199c47d1ff6fd0b49558e43843379c13325e85587d98",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000026.json",
+    "bytes": 161363,
+    "sha256": "7bdc834c9d0f34184b9187a200891aee027d1bce751223c0fc65fb97ee713462",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/eval_alfworld_holdout30_tokens_000024.json",
+    "bytes": 4100690,
+    "sha256": "5e61b2cd5d60b8e41152a3083dda8601a896de036faa137475011fc86f5a7f4a",
+    "redactions": 0
+  },
+  {
+    "path": "benchmark-metrics-tests.log",
+    "bytes": 5729,
+    "sha256": "df9506c2ebbcfd55e37ac69f9ada3320d790755b9247299804240bf2d61ad1ef",
+    "redactions": 0
+  },
+  {
+    "path": "process.json",
+    "bytes": 203,
+    "sha256": "c53628a38149659b53f6158da5a695de785381081532b29436e4db3c12c3df8d",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000025.json",
+    "bytes": 161609,
+    "sha256": "fe7d019088adca6d6e0feb30dad3ba343cca0810cd48a374c3ad9ac935c1841b",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000024.json",
+    "bytes": 156548,
+    "sha256": "61ecddf9fc7a835d9ccf4872719159c80d52b40d2bfff14749ffb7bf7ca6dc72",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000023.json",
+    "bytes": 134893,
+    "sha256": "1dd3aa620013cd9440b7d6d2e9d2921fce71734dbbe0607ad7d49937c379bd2e",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000022.json",
+    "bytes": 158006,
+    "sha256": "8ed5c1d9033e536195a1ae68265c04ee1a3112fd560adead1283dfec7d2e8335",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000021.json",
+    "bytes": 198928,
+    "sha256": "d4736808074364f3fda54f61e0253f6b0eb04f6bc74a1b31e85b1adc553ba4b4",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000020.json",
+    "bytes": 152506,
+    "sha256": "f566c657af301ea240df9f1c2f5943e9ff06b8f0a2c26b905974ad922c792474",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000019.json",
+    "bytes": 147679,
+    "sha256": "832b873a1eaa3265edaf59eda61c2232a6da783e3393f9571628766ee975e916",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000018.json",
+    "bytes": 107607,
+    "sha256": "a8db638af4ac84d6e2687c4523671c0df6f5ee3e4811a6a6bef1553f6ba95768",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000017.json",
+    "bytes": 150162,
+    "sha256": "4abfd3c5e8d3923af4197205fadd41199a2aa7b5d2681b9116da53de1ccf660e",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000016.json",
+    "bytes": 160103,
+    "sha256": "032729dfa7fb35cdabc7f07c9a3f186495e36fb7dee7ac670a6c643f9d4ea1f4",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000015.json",
+    "bytes": 119473,
+    "sha256": "4544d4c6f0bf33a2d0c7a51c06ac51df3cda458165f054d02a15751d137045ba",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000014.json",
+    "bytes": 147787,
+    "sha256": "1c6987aafb6b5f5f8252f42c5c26d7d0143a6dcdf9ccd0e591b29df678502734",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000013.json",
+    "bytes": 168007,
+    "sha256": "dc8daca99affc90625596390269d7bf33759364f1c92602a9ec23f45612962c7",
+    "redactions": 0
+  },
+  {
+    "path": "reward_audit.json",
+    "bytes": 11086,
+    "sha256": "b141978a24f95f152f1c91fd33d41dddc0368ce965fe280b77cd4bba92693841",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000012.json",
+    "bytes": 138072,
+    "sha256": "f114b0b38dfc5748bc5930737a6193948a5ddbc0b7c1591b31c7d2b913b674b5",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000011.json",
+    "bytes": 153509,
+    "sha256": "cb45fb390caff5283854c06a1f3e6a997b7136efff815f2592c3d3b1167407b9",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000010.json",
+    "bytes": 138407,
+    "sha256": "9510447888bd710c6ca4b616dc42ecbda10ef2ca650d229b56c3dd55fd1f6ce9",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000009.json",
+    "bytes": 115422,
+    "sha256": "1108d47baf118f17565f66053a55d7c038c5229b1d0b948ce263395577c92123",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000008.json",
+    "bytes": 160617,
+    "sha256": "c6152b3ceafa46489b01c94a62d3f568acf999f7aa723e7813c17fa8ce91856a",
+    "redactions": 0
+  },
+  {
+    "path": "eval_logging_updated.json",
+    "bytes": 662,
+    "sha256": "7180734190be17e72156298becc5996a365b89872b001ccdb1693913d13a0b82",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000007.json",
+    "bytes": 111595,
+    "sha256": "8e62a5d39d8dbd30964ffef4c38ee20d59fc553dab15ed587a784a38698a3765",
+    "redactions": 0
+  },
+  {
+    "path": "async_training_verified.json",
+    "bytes": 329,
+    "sha256": "521d0ee80ecf92c4970deb34c41bffa21d8c5fb98a3bc69e71b19d606db870a6",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000006.json",
+    "bytes": 124000,
+    "sha256": "a7b72269ea1e0b757d1e9d25240db3dab22be3ada50cebb1893924ef80eadde1",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000005.json",
+    "bytes": 173825,
+    "sha256": "e4ceb3e6d219a6cb3ce9cbef3f575472ed46561d877cd47f31ff66a36cc2c268",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000004.json",
+    "bytes": 189383,
+    "sha256": "c0c4909847f91b6c39eca399ade0221c4b48201b879297beff64575da3df7bdb",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000003.json",
+    "bytes": 175625,
+    "sha256": "09b14bd29a3cf3788c8a9cd33cd1fcdfec10b94659639ae3bf3b4bebc85fefa9",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000002.json",
+    "bytes": 142362,
+    "sha256": "ee355bab3fe0e9f98f9fff7e04ec2b0d63502888a50c4df708b9af58fab8c28d",
+    "redactions": 0
+  },
+  {
+    "path": "async_sample_verification.json",
+    "bytes": 378,
+    "sha256": "f14511469ec19ecb71e6e47d247561ece945b3dcebc2a75d31e441bfae14b1be",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000001.json",
+    "bytes": 150898,
+    "sha256": "913d6df1268cf8bfc0ca630d0fa2895977a8594424a1035a56122c9f81086246",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/rollout_alfworld_000000.json",
+    "bytes": 177002,
+    "sha256": "19db4779ce3c713ef46902c4ed36b71093b36c35b0710b3bc396cc87abb2ff1a",
+    "redactions": 0
+  },
+  {
+    "path": "launch_50.json",
+    "bytes": 2893,
+    "sha256": "3f4c5a668a59ea4a0c02c962a3f8e470b500593e81fb1bc70cedbe29d842d38e",
+    "redactions": 0
+  },
+  {
+    "path": "config_50.json",
+    "bytes": 1505,
+    "sha256": "e7bc86467e92d3745d30221840a022e1b35ba8cb6f2df6711aa45a27857a89d7",
+    "redactions": 0
+  },
+  {
+    "path": "full-launcher-tests.log",
+    "bytes": 390139,
+    "sha256": "38fcf03485e223ac74129338107b75a5d4ee8ecf6c1ed8e516fa68d69f52cb5f",
+    "redactions": 1
+  },
+  {
+    "path": "async-driver-tests.log",
+    "bytes": 5974,
+    "sha256": "d07e806569f605ff747668936ca24535c23a3ae0121c31cceab1b29054541945",
+    "redactions": 0
+  },
+  {
+    "path": "baseline-launch_50.json",
+    "bytes": 2744,
+    "sha256": "a0c6ccb9428c6f5a7b300dda58fc35fb78c0be4ac399227073b210d0dc6428cd",
+    "redactions": 0
+  },
+  {
+    "path": "baseline-config_50.json",
+    "bytes": 1457,
+    "sha256": "a9144e782f467e2738d07df8a856a9f9477d06cdc9feecce1c94b9275feb8e3d",
+    "redactions": 0
+  },
+  {
+    "path": "ray-start.log",
+    "bytes": 34171,
+    "sha256": "91b22a465e38b3d3cb3f469ec0ade10ca766c4a57d71a515a5652fcc8ff3f6bd",
+    "redactions": 0
+  },
+  {
+    "path": "baseline_standard_metrics.json",
+    "bytes": 2023,
+    "sha256": "04aa6a91e79b17322da91320d55d0644ddad0f8166ebdcc6404727907ee6ecac",
+    "redactions": 0
+  },
+  {
+    "path": "baseline-train.log",
+    "bytes": 6409737,
+    "sha256": "f3d6b4a6e882178e1378feadde166b6359dbc591c568139486749d0e85e774ac",
+    "redactions": 0
+  },
+  {
+    "path": "baseline-process.json",
+    "bytes": 69,
+    "sha256": "04ac0d20dbcaa415daa51d767c31c4def9f7bf34a474505d778c838d04d570da",
+    "redactions": 0
+  },
+  {
+    "path": "parser-launcher-test.log",
+    "bytes": 1971,
+    "sha256": "b01f245726925aa40aab8ccc5b7b6c6c91416a5782fd3e8db355e5d391cb6f27",
+    "redactions": 0
+  },
+  {
+    "path": "run_experiment.py",
+    "bytes": 4138,
+    "sha256": "0211084cbfbf57ef052ad2f6aee96378c920f859f459302109986b45334043cc",
+    "redactions": 0
+  },
+  {
+    "path": "baseline_verified.json",
+    "bytes": 22418,
+    "sha256": "0d0debb88d71da934e0b2c7da98bd4fad4e8af9e79ccd9abca8a6aece22c083f",
+    "redactions": 0
+  },
+  {
+    "path": "token_metrics/eval_alfworld_holdout30_tokens_000000.json",
+    "bytes": 5174639,
+    "sha256": "1ac1260759425261c08aca3f076c470d410ad9ae71ad403408644d2e80a5fc7e",
+    "redactions": 0
+  },
+  {
+    "path": "baseline-launcher-tests.log",
+    "bytes": 405468,
+    "sha256": "ea6dbb7ebd3591db3a588ad369143692e6a8132b28ae64267d836289f48e3fbd",
+    "redactions": 1
+  },
+  {
+    "path": "attempt-1-launch.json",
+    "bytes": 2674,
+    "sha256": "5ef79322987a56e879d0e1f1a7a33b883ff96f2ec0d65cec8c88498740c9c167",
+    "redactions": 0
+  },
+  {
+    "path": "attempt-1-invalid-tool-parser.log",
+    "bytes": 678385,
+    "sha256": "7661ea3abdef57ec7168aafe033d7ff27f9c313134bb50d7fdabe9ebed722f48",
+    "redactions": 0
+  },
+  {
+    "path": "attempt-1-config.json",
+    "bytes": 1457,
+    "sha256": "9436b853866ce7c6f6bc4dcc728b0f525f5778fa4debae027767afe4d8794052",
+    "redactions": 0
+  },
+  {
+    "path": "wandb_run_id.txt",
+    "bytes": 8,
+    "sha256": "a87bf41a58dafc6b87db9626f491141005f738acd7a790e95a148d3e9b2987ea",
+    "redactions": 0
+  },
+  {
+    "path": "convert.log",
+    "bytes": 55781,
+    "sha256": "d51b4daded4be19e014d47eb79f5ea2908729a8af88f2b29a4b70a5a377dd8e5",
+    "redactions": 0
+  },
+  {
+    "path": "cpu-tests.log",
+    "bytes": 2032,
+    "sha256": "5eab44e51825fcfacbf6bcde10de59d77973d73e93528d4f467d7600f727951b",
+    "redactions": 0
+  },
+  {
+    "path": "prepare-data.log",
+    "bytes": 856,
+    "sha256": "df148941d8d0cf4091930460b1fff5989ddc892d5923ce05e80e660cee5f9ec2",
+    "redactions": 0
+  },
+  {
+    "path": "install.log",
+    "bytes": 17580,
+    "sha256": "1640c5a99cbdb4d45a59526768e72829c56497494b990faab2f27221c54f75a5",
+    "redactions": 0
+  },
+  {
+    "path": "model-download.log",
+    "bytes": 1165,
+    "sha256": "f688d266b7682df24abcafbd58441cd260a34902aa7c1f60ae876c443567adef",
+    "redactions": 0
+  },
+  {
+    "path": "games-download.log",
+    "bytes": 555,
+    "sha256": "f5e825485af264eff0f5c09f56cc1de49ae9ec8bebcf927d2ccbcddff5a9f6fb",
+    "redactions": 0
+  }
+]

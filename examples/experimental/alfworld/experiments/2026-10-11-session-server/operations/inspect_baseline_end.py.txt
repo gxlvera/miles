@@ -1,0 +1,7 @@
+from pathlib import Path
+import re
+p=Path('/workspace/experiments/alfworld/alfworld_session_server/train.log')
+lines=p.read_text(errors='replace').splitlines()
+for s in lines[-100:]:
+    if not any(x in s for x in ['wandb-key','WANDB_API_KEY','wandb_v1_','EXEC:','Running entrypoint']):
+        print(s[:1200])

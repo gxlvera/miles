@@ -1,0 +1,85 @@
+Artifact locations and recovery
+===============================
+This file describes the storage layout. Consult final_results.json and the
+final archive verification record for completion/release status; this working
+file alone does not certify that step 50 or resource release has completed.
+
+Cloud storage (survives Sandbox termination)
+--------------------------------------------
+Modal workspace: xiaoleg; environment: main
+Volume: h100-dev-files
+Run directory relative to the Volume:
+  experiments/alfworld/alfworld_session_server
+Checkpoint directory:
+  experiments/alfworld/alfworld_session_server/checkpoints
+Step 25: iter_0000024 (zero-based optimizer-update index)
+Step 50: iter_0000049 (tracker 49 and all shards verified)
+Preserve .metadata, metadata.json, ALL .distcp shards, the checkpoint tracker,
+and rollout/global_dataset_state_dict_<iteration>.pt. These are distributed
+Megatron training checkpoints, not a single Hugging Face safetensors file.
+The complete run folder also retains logs, rollout/trajectory/train-data dumps,
+token metrics, configs, launch arguments, test logs and provenance.
+
+Other reusable Volume paths:
+  miles                             source checkout
+  models/Qwen3.5-4B                 HF model/tokenizer/config
+  models/Qwen3.5-4B_torch_dist       original converted reference weights
+  datasets/alfworld-70-30/alfworld   fixed train/eval JSONL and split manifest
+  datasets/alfworld                 source indexed dataset and game data
+Keep the original game files at their indexed paths when restoring /workspace.
+Model and dataset assets are intentionally not committed to Git.
+
+Download without allocating a GPU
+---------------------------------
+With the local Modal environment already authenticated:
+  source ~/Documents/modal-dev/.venv/bin/activate
+  modal volume ls h100-dev-files /experiments/alfworld/alfworld_session_server/checkpoints
+  modal volume get h100-dev-files /experiments/alfworld/alfworld_session_server/checkpoints /Volumes/YOUR_DISK/alfworld-checkpoints
+
+Replace the external-disk destination above with a location having enough free
+space. Each full checkpoint is roughly 59 GB; both saved iterations need about
+118 GB before overhead. The Mac did not have sufficient free space at closeout
+preparation, so large checkpoints are retained in the persistent cloud Volume.
+Validate downloaded files against checkpoint_manifest.json using SHA-256.
+The CLI command does not require a running Sandbox.
+
+Resume on Modal
+---------------
+Use the recorded image digest and dependencies from environment_manifest.json.
+Create a new GPU Sandbox mounting h100-dev-files at /workspace. Use the committed
+miles source and ensure /workspace/miles is first on PYTHONPATH; preserve the
+Megatron-LM path. Re-establish W&B authentication from the user's existing Modal
+secret miles-wandb or local credential provider; never put keys in the repo.
+The operations/ directory contains redacted .py.txt snapshots of the exact
+Modal setup and run wrapper used. These are provenance records, not maintained
+portable launchers. Review paths before copying a snapshot to an executable .py.
+
+For continued training, load the full checkpoint root, retaining optimizer/RNG
+and data-loader state. Supply a larger TOTAL num-rollout target, not just the
+number of extra steps. Preserve the fixed train/eval split and Session Server
+v2 topology. The earlier wrapper's --resume mode checks the tracker and skips
+repeating the initial eval. Use the launch_50.json and config_50.json files to
+recover the exact flags. For an independent new experiment, instead load only
+model weights and explicitly reset optimizer, RNG and data progress.
+Do not run a recovery command until you intend to allocate GPU compute again.
+
+Local backup
+------------
+The Codex task's outputs/alfworld contains lightweight run-artifacts/, results,
+code patch, debug record, environment/size/hash manifests and test evidence.
+Raw large dumps and checkpoint shards remain on the Volume. The incremental Git
+bundle miles-aflworld.bundle and closeout_status.json record the final commit.
+The bundle requires base commit 99b756e62dc9cd42c6e4d58cebaeedb6ee3f7467,
+available from the fork. Clone the fork, then fetch the bundle to restore aflworld. Log copies are
+credential-redacted; the redaction count and per-file hash are in
+local_artifacts_manifest.json. Preserve that folder when moving this task.
+
+Repository vs. runtime artifacts
+--------------------------------
+Git branch aflworld carries source changes, tests, debug/experiment records and
+small evidence/config snapshots. Large binary checkpoints are referenced by
+Volume name, path, size and digest rather than embedded in Git history.
+Final delivery requires: full eval50 verified, checkpoint manifest complete,
+independent Volume readability verified, lightweight artifacts backed up,
+Git commit pushed and remote SHA checked, then Sandbox terminated and termination
+verified. A separate persistent Volume is retained after releasing the GPUs.

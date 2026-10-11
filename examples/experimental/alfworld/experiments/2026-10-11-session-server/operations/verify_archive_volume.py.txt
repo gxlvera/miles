@@ -1,0 +1,30 @@
+"""Verify checkpoint publication through the Volume API, independent of Sandbox."""
+import hashlib,json
+from pathlib import Path
+import modal
+root=Path(__file__).resolve().parents[2]
+out=root/'outputs/alfworld'; out.mkdir(exist_ok=True)
+volume=modal.Volume.from_name('h100-dev-files')
+prefix='/experiments/alfworld/alfworld_session_server'
+manifest=json.loads(b''.join(volume.read_file(prefix+'/checkpoint_manifest.json')))
+entries=volume.listdir(prefix+'/checkpoints',recursive=True)
+lookup={'/'+e.path.lstrip('/'):e for e in entries}
+checked=[]
+for row in manifest['files']:
+    path=prefix+'/'+row['path']; entry=lookup[path]
+    assert entry.size==row['bytes'], path
+    rec={'path':row['path'],'bytes':entry.size,'published':True,'sha256_recorded':row['sha256']}
+    if row['bytes']<5*1024**2:
+        data=b''.join(volume.read_file(path))
+        assert hashlib.sha256(data).hexdigest()==row['sha256'],path
+        rec['independent_read_sha256_verified']=True
+    else:
+        rec['independent_read_sha256_verified']=False
+        rec['verification']='Remote full SHA-256 plus independently published Volume file size; large shards not downloaded.'
+    checked.append(rec)
+(out/'checkpoint_manifest.json').write_text(json.dumps(manifest,indent=2))
+proof={'volume':'h100-dev-files','run_path':prefix,'latest_checkpoint_index':manifest['latest_completed_checkpoint_index'],'independent_volume_api':True,'checked_files':checked}
+(out/'volume_archive_verification.json').write_text(json.dumps(proof,indent=2))
+for name in ['environment_manifest.json','archive_inventory_progress.json']:
+    (out/name).write_bytes(b''.join(volume.read_file(prefix+'/'+name)))
+print(json.dumps({'checkpoint_index':proof['latest_checkpoint_index'],'files_published':len(checked),'total_bytes':manifest['total_bytes'],'small_files_sha256_verified':sum(x['independent_read_sha256_verified'] for x in checked)}))

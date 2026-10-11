@@ -1,0 +1,20 @@
+"""Official Miles image, pinned to the linux/amd64 latest image on 2026-10-10."""
+
+import modal
+
+MILES_IMAGE_REF = (
+    "radixark/miles@sha256:7504d215ce7ef7212924921d70124dee00f1ffd2479afcdc3e592b57ef85b9c3"
+)
+
+
+def get_image():
+    return (
+        modal.Image.from_registry(MILES_IMAGE_REF)
+        .apt_install("git", "nano", "tmux", "procps")
+        .run_commands(
+            'python -c "import miles, torch, ray; '
+            "print('Miles:', miles.__file__); "
+            "print('PyTorch:', torch.__version__); "
+            "print('Ray:', ray.__version__)\""
+        )
+    )

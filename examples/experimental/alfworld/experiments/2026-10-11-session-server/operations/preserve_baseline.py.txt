@@ -1,0 +1,25 @@
+import ast,json,re
+from pathlib import Path
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+lines=(root/'train.log').read_text(errors='replace').splitlines()
+line=next(x for x in lines if 'metrics.py:55 - eval 0: {' in x)
+record=ast.literal_eval(re.sub(r'\x1b\[[0-9;]*m','',line).split(' - eval 0: ',1)[1])
+record['eval/step']=0
+(root/'baseline_standard_metrics.json').write_text(json.dumps(record,indent=2))
+api=wandb.Api(timeout=30)
+r=api.run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+if 'eval/alfworld_holdout30' not in dict(r.summary):
+    run=wandb.init(entity=r.entity,project=r.project,id=r.id,name='alfworld_session_server',settings=wandb.Settings(mode='shared',x_primary=False,x_update_finish_state=False))
+    wandb.define_metric('eval/step')
+    wandb.define_metric('eval/*',step_metric='eval/step')
+    wandb.log(record)
+    run.finish()
+    print('Recovered exact baseline metrics from the persisted evaluation log')
+print('BASELINE_SUCCESS',record['eval/alfworld_holdout30'])
+for name in ['train.log','config_50.json','launch_50.json','process.json']:
+    p=root/name
+    target=root/('baseline-'+name)
+    if p.exists() and not target.exists():
+        p.rename(target)
+print('Baseline logs preserved')

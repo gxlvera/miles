@@ -1,0 +1,14 @@
+from pathlib import Path
+import ray, inspect
+import ray.actor
+src=inspect.getsource(ray.actor)
+for needle in ['_from_actor_id','_deserialize','get_actor_handle','get_actor']:
+    print('NEEDLE',needle)
+    lines=src.splitlines()
+    for i,line in enumerate(lines):
+        if needle in line:
+            print('\n'.join(lines[max(0,i-2):i+8]))
+from ray.util.state import list_actors
+for a in list_actors(detail=True):
+    if a.state=='ALIVE' and a.name:
+        print('NAMED', a.class_name,a.name,a.ray_namespace)

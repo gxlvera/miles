@@ -1,0 +1,11 @@
+import ast,json,re
+from pathlib import Path
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+lines=(root/'train.log').read_text(errors='replace').splitlines()
+for line in [x for x in lines if ('MegatronTrainRayActor' in x or 'TrainerController' in x) and any(k in x.lower() for k in ['step','train','forward','backward','error'])][-18:]:
+    if not any(k in line for k in ['EXEC:','Running entrypoint','wandb-key','WANDB_API_KEY','wandb_v1_']):print(line[:1500])
+r=wandb.Api(timeout=20).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+summary={k:v for k,v in dict(r.summary).items() if k in ['eval/alfworld_holdout30','eval/step','train/step'] or k.startswith('train/') and any(s in k for s in ['loss','grad_norm','step','lr'])}
+print('WANDB_TRAIN',json.dumps(summary,indent=2))
+(root/'async_training_verified.json').write_text(json.dumps(summary,indent=2))

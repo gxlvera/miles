@@ -1,0 +1,298 @@
+{
+  "volume": "h100-dev-files",
+  "run_path": "/experiments/alfworld/alfworld_session_server",
+  "latest_checkpoint_index": 49,
+  "independent_volume_api": true,
+  "checked_files": [
+    {
+      "path": "checkpoints/iter_0000024/.metadata",
+      "bytes": 1937297,
+      "published": true,
+      "sha256_recorded": "e3fcbce750419eea11b189f871f30a351d3d754339aa2c042d57dca9475c052c",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/__0_0.distcp",
+      "bytes": 14724908875,
+      "published": true,
+      "sha256_recorded": "9c0e83d752ec181022adcaba7bd3a888f6e7797675259774b9afa3879eb1febf",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000024/__1_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "38c1aabca0e9132d0e1f3de766fb5d74712bbf44bcbf9ffede508de0380fe364",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000024/__2_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "b45b5995cf9cb75e61e6a201f863d2eb69eecde52f8f0207bcdd8b2eec54ccea",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000024/__3_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "91a885ca47e68043c5fb131d05b3c79c86184113125f5f2fcfd00e7b802c38c0",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00000.jsonl",
+      "bytes": 1030139,
+      "published": true,
+      "sha256_recorded": "5f06854077369c0a5fdf89a8750bdfa309b6d700ba2dc0437a0f5699a4482341",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00001.jsonl",
+      "bytes": 979189,
+      "published": true,
+      "sha256_recorded": "a097438a4ad215fc91013fbb1c1e1c8f3b7db376a35b9b78969f9350cdf1aa3f",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00002.jsonl",
+      "bytes": 979189,
+      "published": true,
+      "sha256_recorded": "eba6b351aa9c8ad31aa6b2faae728f3e30c2a7139fc7a0cf85f5b4d37aaf1435",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00003.jsonl",
+      "bytes": 979189,
+      "published": true,
+      "sha256_recorded": "abf0507ede4e93165aece8aaddf967ae1e1c8353c012f59f2ce3990c15451289",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00004.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "c5bc7597de5b01411aedf38b7361290727552761fb01165a9e41ef2a3e9435df",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00005.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "ff531a8afcc330b8677b7fb6dedb704bebbb4f781ba3790b336e197a4f3115a2",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00006.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "968c731f90f1085e3867edb5b08273d0c9a0b48e2984d11a63533f05ef1665ab",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/actor_cell00000_rank00007.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "ad4bfab4ccea5a1f42c4afd7881221b88e274eed1d8f2f13af09f5992d92c04d",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/inference_controller.jsonl",
+      "bytes": 1415949,
+      "published": true,
+      "sha256_recorded": "8de6f7f6c9e6608592e0a5dac87bc8875bf72c1fdd6e9168b75fa477f0d8f973",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/main.jsonl",
+      "bytes": 6119403,
+      "published": true,
+      "sha256_recorded": "82090b78257349fe6309564c110ae2eef6f9b365b6abfa83b63673e4f5518248",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/rollout_executor.jsonl",
+      "bytes": 1079315,
+      "published": true,
+      "sha256_recorded": "659c2ed6d5313c1612074b135530041188d9c492a27046327d8e431da319726a",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/trainer_controller_actor.jsonl",
+      "bytes": 674854,
+      "published": true,
+      "sha256_recorded": "4fdede5a0aa7d60681c8c97e9642ff3c6613cfd7d5228058d78595ee6592733c",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/debug_events/worker_manager.jsonl",
+      "bytes": 758996,
+      "published": true,
+      "sha256_recorded": "43c10b88311a6254f3d67bcd2df86c1648304b2ca812e5efabc8b2856b4c4986",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000024/metadata.json",
+      "bytes": 63,
+      "published": true,
+      "sha256_recorded": "56b32e2dfbc0255db319bddf6880c9dfd3475135ca8d5ace23b8a6a384ed63c6",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/.metadata",
+      "bytes": 1937297,
+      "published": true,
+      "sha256_recorded": "b66dee9f2fcab12452b3c772f346cd3ae00744937afaa4350f449d3f76e9cf21",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/__0_0.distcp",
+      "bytes": 14724908875,
+      "published": true,
+      "sha256_recorded": "e56c8fba567405c386a7eb7a6579df1df6c599587d5f1ecc70d3eb3000c2caae",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000049/__1_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "b3a7a67968bb71758819bc9371cf72e87cca601292006d6e74cd84d4ce0b589e",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000049/__2_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "dde44640ed5803fe29a534666e70efe22db273f9bd57c8c296655cf4ca329dc9",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000049/__3_0.distcp",
+      "bytes": 14724137964,
+      "published": true,
+      "sha256_recorded": "db5b19d547d2c6941dc767c7829d2513a6047c10bc101df953d6356300643d8a",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00000.jsonl",
+      "bytes": 1173590,
+      "published": true,
+      "sha256_recorded": "ecb29ddcbfc56e1fbcd50716bf32db1360cec9c84584e25baf49de4b7a2eb246",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00001.jsonl",
+      "bytes": 1072101,
+      "published": true,
+      "sha256_recorded": "c39ecb488e0349dcbb4a7e8a5f39918888c6ef120ee1fd5805751b19a6259272",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00002.jsonl",
+      "bytes": 1072101,
+      "published": true,
+      "sha256_recorded": "cca371eae8f4d133f35c17849b7b2cadf34d50b0cffb5df8846d7c726a21de52",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00003.jsonl",
+      "bytes": 1072101,
+      "published": true,
+      "sha256_recorded": "4154164de95f08a04b6492f75768ae14fd617281fd3a1074aacdd313b4f48c3f",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00004.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "c5bc7597de5b01411aedf38b7361290727552761fb01165a9e41ef2a3e9435df",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00005.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "ff531a8afcc330b8677b7fb6dedb704bebbb4f781ba3790b336e197a4f3115a2",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00006.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "968c731f90f1085e3867edb5b08273d0c9a0b48e2984d11a63533f05ef1665ab",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/actor_cell00000_rank00007.jsonl",
+      "bytes": 653024,
+      "published": true,
+      "sha256_recorded": "ad4bfab4ccea5a1f42c4afd7881221b88e274eed1d8f2f13af09f5992d92c04d",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/inference_controller.jsonl",
+      "bytes": 1806819,
+      "published": true,
+      "sha256_recorded": "cb0a38f22aadc13eb33e2cad687b0d85ae0d015e386986623d1dad8c98efe25c",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/main.jsonl",
+      "bytes": 10810266,
+      "published": true,
+      "sha256_recorded": "14c46f002df27842f49f0d2658ea4e2fd54195f4830a285e6a2d623d467636ab",
+      "independent_read_sha256_verified": false,
+      "verification": "Remote full SHA-256 plus independently published Volume file size; large shards not downloaded."
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/rollout_executor.jsonl",
+      "bytes": 1476867,
+      "published": true,
+      "sha256_recorded": "29eb1980d8d91ccc85e92cbe49a87820bfb74c8636be88cf68a5d5e13df06781",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/trainer_controller_actor.jsonl",
+      "bytes": 772242,
+      "published": true,
+      "sha256_recorded": "d17b881be080a8b8e132dae3ce3ceda1b1b9fa74ab8e5e4a34de3768ace839ad",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/debug_events/worker_manager.jsonl",
+      "bytes": 850497,
+      "published": true,
+      "sha256_recorded": "33f3bd7d41004b50dd2842f172a6bd3d0be77bd4e4a3ce693e0d566665050453",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/iter_0000049/metadata.json",
+      "bytes": 63,
+      "published": true,
+      "sha256_recorded": "56b32e2dfbc0255db319bddf6880c9dfd3475135ca8d5ace23b8a6a384ed63c6",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_24.pt",
+      "bytes": 1579,
+      "published": true,
+      "sha256_recorded": "1e442676af5c679dd24fd9c860135ab260006ac1f4600945048051c75789b2b2",
+      "independent_read_sha256_verified": true
+    },
+    {
+      "path": "checkpoints/rollout/global_dataset_state_dict_49.pt",
+      "bytes": 1579,
+      "published": true,
+      "sha256_recorded": "f16733e455f89b068e7189020a6e1b322ced424e33894d5f4a0191f8629f1695",
+      "independent_read_sha256_verified": true
+    }
+  ]
+}

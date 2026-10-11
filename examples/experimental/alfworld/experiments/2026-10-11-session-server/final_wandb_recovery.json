@@ -1,0 +1,8 @@
+{
+  "source": "Persisted native eval49 log and token_metrics JSON, independently cross-checked against 1066 raw episode rewards",
+  "successes": 869,
+  "episodes": 1066,
+  "score": 0.8151969981238274,
+  "recovered_records": 2,
+  "reason": "Ray job succeeded and W&B run finished, but final eval49 native and mean-only metrics were absent from API history after shutdown; likely worker tracking buffer not flushed before actor termination."
+}

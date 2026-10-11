@@ -1,0 +1,16 @@
+import ast,json,re
+from pathlib import Path
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+report=json.loads((root/'token_metrics/eval_alfworld_holdout30_tokens_000024.json').read_text())
+print('TOKEN_METRICS',json.dumps(report['metrics'],indent=2))
+log=(root/'train.log').read_text(errors='replace')
+for line in log.splitlines():
+    if ' - eval 24: {' in line:
+        d=ast.literal_eval(line.split(' - eval 24: ',1)[1]);print('NATIVE_EVAL',json.dumps(d));(root/'eval25_standard_metrics.json').write_text(json.dumps(d,indent=2))
+r=wandb.Api(timeout=20).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+print('EVAL_HISTORY',json.dumps(list(r.scan_history(keys=['eval/step','eval/alfworld_holdout30'],page_size=100))))
+print('CUSTOM_HISTORY',json.dumps(list(r.scan_history(keys=['eval/step','eval/alfworld_holdout30/tokens/episode/success_rate'],page_size=100))))
+success=round(report['metrics']['episode/success_rate']*report['metrics']['episodes'])
+summary={'completed_optimizer_updates':25,'native_rollout_id':24,'episodes':report['metrics']['episodes'],'successes':success,'success_rate':report['metrics']['episode/success_rate'],'baseline_successes':465,'baseline_success_rate':465/1066,'improvement_percentage_points':100*(success-465)/1066,'token_metrics':report['metrics']}
+(root/'eval25_verified.json').write_text(json.dumps(summary,indent=2));print('RESULT',json.dumps(summary,indent=2))

@@ -86,17 +86,19 @@ export no_proxy=127.0.0.1 && export PYTHONUNBUFFERED=1 && ray job submit
   --adam-beta1 0.9
   --adam-beta2 0.98 
   --rollout-num-gpus-per-engine 1
-  --sglang-mem-fraction-static 0.5 
+  --sglang-mem-fraction-static 0.5
+  --sglang-reasoning-parser qwen3
+  --sglang-tool-call-parser qwen3_coder 
   --attention-dropout 0
   --hidden-dropout 0
   --accumulate-allreduce-grads-in-fp32
   --attention-softmax-in-fp32
   --attention-backend flash
-  --colocate
   --actor-num-nodes 1
   --actor-num-gpus-per-node 4
   --num-gpus-per-node 4
-  --dump-details /root/shared_data/alfworld/260101-000000-000/dump_details 
+  --dump-details /root/shared_data/alfworld/260101-000000-000/dump_details
+  --colocate 
   --use-wandb
   --wandb-project miles-run_qwen3_5_4b_alfworld
   --wandb-group 260101-000000-000

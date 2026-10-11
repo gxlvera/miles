@@ -86,6 +86,11 @@ The launcher uses the standard Miles `command_utils` backend, including its Ray
 startup/cleanup; use a dedicated training allocation. For an already-running Ray
 cluster, set `MILES_SCRIPT_EXTERNAL_RAY=1` as in other Miles launchers.
 
+The launcher explicitly selects the reasoning and tool-call parsers bound to
+Miles' `qwen35` TITO definition. Template auto-detection alone is insufficient
+in some SGLang images: without an active tool-call parser, valid tool syntax can
+arrive as plain text and every environment action will be rejected.
+
 Defaults: 2 tasks × 4 episodes = 8 episodes per rollout and one GRPO batch per
 iteration; 30 agent turns; up to 4096 generated tokens **per model call**. An
 invalid action consumes a turn but does not advance TextWorld. Reward is 1 only
@@ -97,6 +102,16 @@ For the original recipe's batch scale, use `--rollout-batch-size 16
 `--max-steps`, `--max-response-len`, `--max-tokens-per-gpu` and
 `--tensor-model-parallel-size` are exposed for resource adjustments.
 The batching token budget does **not** truncate a long individual trajectory.
+
+For one-batch-ahead asynchronous training on eight GPUs, add `--async-train
+--num-gpus-per-node 8 --tensor-model-parallel-size 4 --rollout-batch-size 4
+--n-samples-per-prompt 8`. The launcher splits GPUs equally between trainer
+and rollout pools, selects `train_async.py`, uses rollout behavior log-probs,
+and performs one optimizer step and one weight publication per batch. The
+driver waits for the single prefetched batch before publishing weights, so
+trajectories are at most one optimizer update behind and never change weights
+mid-episode. This mode does not enable the persistent fully-async producer.
+
 This example preserves full histories; reduce turn/output limits for a smaller
 memory smoke run, and keep those settings identical in later representation
 comparisons. It does not yet demonstrate 100-turn / 128K-context training.
@@ -113,6 +128,27 @@ comparisons. It does not yet demonstrate 100-turn / 128K-context training.
   episode, with environment tokens masked out by Miles.
 - Use Miles' training timer for timing comparisons, separately from rollout
   and startup time; see the per-turn baseline below.
+
+## Optional token diagnostics for merged samples
+
+Add these flags through `--extra-args` to retain the ordinary Miles metrics and
+also log per-turn token lengths to W&B, stdout and `token_metrics/` next to
+`dump_details/`:
+
+```text
+--custom-rollout-log-function-path examples.experimental.alfworld.token_metrics.log_rollout
+--custom-eval-rollout-log-function-path examples.experimental.alfworld.token_metrics.log_eval
+```
+
+The diagnostics read native token IDs and the loss mask; they do not split or
+re-tokenize training samples. Assistant counts are completion-mask spans.
+Non-assistant counts include the first prompt and subsequent tool/context
+tokens, reported both as newly added tokens and accumulated non-assistant
+context. Means weight each assistant turn equally. Eval publishes only these
+cross-turn means and episode aggregates; training rollout diagnostics also
+include per-position means. Raw per-episode turn counts remain in the local
+diagnostic JSON for inspection. A final environment reply after the last completion is not a model
+input and is absent from these counts.
 
 ## Per-turn training baseline
 
@@ -173,6 +209,21 @@ does **not** split an existing dump; it must already contain the desired layout.
 
 This measures duplicated history computation **in training**. Session Server
 still assembles merged samples first; it is not an unmerged-storage benchmark.
+
+For batch-level comparison metrics in either mode, set
+`--custom-rollout-log-function-path examples.experimental.alfworld.benchmark_metrics.log_rollout`.
+This replaces the merged-only token diagnostics hook. It logs `benchmark/*`
+metrics to W&B and writes one JSON per rollout under `benchmark_metrics/` next
+to `dump_details/`. `samples_per_source_prompt` divides by distinct prompt
+groups; `samples_per_episode` divides by independently sampled trajectories.
+Token totals count full unpadded sample sequences before the causal shift.
+Repeated-history tokens are the sum of sample lengths minus the final merged
+sequence length for each episode. Identical text in separate episodes is not
+deduplicated, and lexical repetition is not counted as repeated history.
+The hook preserves native training timings; sampling time is logged separately
+as `benchmark/rollout_seconds`. Report optimizer/actor time, total train time,
+and end-to-end step time separately because asynchronous work overlaps.
+
 The splitter targets this dense, linear ALFWorld recipe: no compaction, branching,
 R3, OPD, top-k/support replay or `--max-seq-len` truncation. Per-call output-length
 termination is supported. Episode-level environment/cache totals are counted

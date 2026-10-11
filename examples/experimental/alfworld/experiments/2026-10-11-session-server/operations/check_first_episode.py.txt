@@ -1,0 +1,15 @@
+import ast
+from pathlib import Path
+
+lines=Path('/workspace/experiments/alfworld/alfworld_session_server/train.log').read_text(errors='replace').splitlines()
+for line in lines:
+    if 'server_args={' in line:
+        cfg=ast.literal_eval(line.split('server_args=',1)[1])
+        print('ACTIVE_PARSERS', {k:cfg[k] for k in ['reasoning_parser','tool_call_parser']})
+        break
+for line in lines:
+    if 'eval_rollout_single_dataset example' in line:
+        print('FIRST_EPISODE', {'invalid_action_text_count':line.count('Invalid action.'),'tool_response_count':line.count('<|im_start|>tool'),'ending':line[-1700:]})
+        break
+else:
+    print('FIRST_EPISODE_PENDING')

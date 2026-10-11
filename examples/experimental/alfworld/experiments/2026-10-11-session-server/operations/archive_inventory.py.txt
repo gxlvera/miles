@@ -1,0 +1,13 @@
+import hashlib,json,subprocess
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+files=[]
+for p in root.rglob('*'):
+    if p.is_file(): files.append({'path':str(p.relative_to(root)),'size':p.stat().st_size})
+repo=Path('/workspace/miles')
+report={'run_root':str(root),'files':files,'total_bytes':sum(p['size'] for p in files),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),'git_status':subprocess.check_output(['git','status','--short'],cwd=repo,text=True),'changed_file_sha256':{}}
+for name in ['examples/experimental/alfworld/README.md','scripts/run_qwen3_5_4b_alfworld.py','examples/experimental/alfworld/token_metrics.py','examples/experimental/alfworld/benchmark_metrics.py','tests/fast/alfworld/test_token_metrics.py','tests/fast/alfworld/test_benchmark_metrics.py','tests/snapshots/launch_scripts/py/scripts/run_qwen3_5_4b_alfworld.py/execute.txt']:
+    report['changed_file_sha256'][name]=hashlib.sha256((repo/name).read_bytes()).hexdigest()
+(root/'archive_inventory_progress.json').write_text(json.dumps(report,indent=2))
+print(json.dumps({k:v for k,v in report.items() if k!='files'},indent=2))
+print('TOP_LEVEL_BYTES',json.dumps({name:sum(p['size'] for p in files if p['path'].split('/')[0]==name) for name in sorted({p['path'].split('/')[0] for p in files})},indent=2))

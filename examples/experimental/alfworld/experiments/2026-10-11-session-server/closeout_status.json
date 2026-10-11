@@ -1,0 +1,20 @@
+{
+  "status": "evaluation_and_archive_verified",
+  "ray_job_status": "SUCCEEDED",
+  "completed_optimizer_updates": 50,
+  "final_success_rate": 0.8151969981238274,
+  "final_successes": 869,
+  "eval_episodes": 1066,
+  "wandb_state": "finished",
+  "benchmarks_cancelled": true,
+  "checkpoint_volume": "h100-dev-files",
+  "checkpoint50": "experiments/alfworld/alfworld_session_server/checkpoints/iter_0000049",
+  "checkpoint_files": 40,
+  "checkpoint_bytes": 117837870411,
+  "local_backup_files": 93,
+  "local_backup_bytes": 46752606,
+  "sandbox_id": "sb-qKaDixw8FY32QYQarDm3Bs",
+  "sandbox_released": false,
+  "git_branch": "aflworld",
+  "push_verified": false
+}

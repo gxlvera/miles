@@ -1,0 +1,33 @@
+"""Hash completed immutable checkpoint iterations; preserve cache across closeout."""
+import hashlib,json,time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+checkpoints=root/'checkpoints'
+tracker=checkpoints/'latest_checkpointed_iteration.txt'
+latest=int(tracker.read_text().strip())
+out=root/'checkpoint_manifest.json'
+old=json.loads(out.read_text()).get('files',[]) if out.exists() else []
+cache={r['path']:r for r in old}
+paths=[]
+for p in checkpoints.rglob('*'):
+    if not p.is_file(): continue
+    parts=p.relative_to(checkpoints).parts
+    if parts[0].startswith('iter_') and int(parts[0][5:])<=latest: paths.append(p)
+    elif parts[0]=='rollout' and p.suffix=='.pt': paths.append(p)
+
+def digest(p):
+    stat=p.stat(); rel=str(p.relative_to(root)); prev=cache.get(rel)
+    if prev and prev['bytes']==stat.st_size and prev['mtime_ns']==stat.st_mtime_ns: return prev
+    sha=hashlib.sha256()
+    with p.open('rb') as f:
+        while block:=f.read(16*1024*1024): sha.update(block)
+    assert p.stat().st_size==stat.st_size and p.stat().st_mtime_ns==stat.st_mtime_ns, 'Checkpoint changed while hashing'
+    row={'path':rel,'bytes':stat.st_size,'mtime_ns':stat.st_mtime_ns,'sha256':sha.hexdigest()}
+    if stat.st_size>1024**3: print('HASHED',rel,stat.st_size,flush=True)
+    return row
+with ThreadPoolExecutor(max_workers=2) as pool: rows=list(pool.map(digest,sorted(paths)))
+report={'latest_completed_checkpoint_index':latest,'created_unix':time.time(),'total_bytes':sum(x['bytes'] for x in rows),'files':rows}
+output=json.dumps(report,indent=2)
+tmp=out.with_suffix('.tmp');tmp.write_text(output);tmp.replace(out)
+print('CHECKPOINT_MANIFEST',len(rows),report['total_bytes'],flush=True)

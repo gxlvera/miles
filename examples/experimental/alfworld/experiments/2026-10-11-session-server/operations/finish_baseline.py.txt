@@ -1,0 +1,18 @@
+import json,time,subprocess
+from pathlib import Path
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+for _ in range(45):
+    files=list((root/'token_metrics').glob('eval*000000.json'))
+    if files:
+        d=json.loads(files[0].read_text())
+        print('BASELINE_LOCAL',json.dumps(d['metrics']),flush=True)
+        break
+    time.sleep(1)
+else:
+    raise RuntimeError('Baseline metric file not yet present; job left running')
+api=wandb.Api(timeout=15)
+r=api.run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+print('BASELINE_WANDB',json.dumps({k:v for k,v in dict(r.summary).items() if k.startswith('eval/')}),flush=True)
+(root/'baseline_verified.json').write_text(json.dumps({'metrics':d['metrics'],'wandb_eval':{k:v for k,v in dict(r.summary).items() if k.startswith('eval/')}},indent=2))
+print(subprocess.run(['ray','job','stop','--address=http://127.0.0.1:8265','raysubmit_PA2V9i7fqQwkb6pE'],capture_output=True,text=True,timeout=30).stdout,flush=True)

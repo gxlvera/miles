@@ -1,0 +1,31 @@
+import json, re
+from collections import defaultdict, Counter
+from pathlib import Path
+import torch
+import wandb
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+splits={n:{r['metadata']['game_file'] for r in map(json.loads,Path('/workspace/datasets/alfworld-70-30/alfworld/'+n+'.jsonl').read_text().splitlines())} for n in ['train','eval']}
+report={'split_counts':{k:len(v) for k,v in splits.items()},'split_overlap':len(splits['train']&splits['eval']),'batches':[]}
+paths=sorted([p for p in (root/'dump_details/rollout_data').glob('*.pt') if p.stem.isdigit()],key=lambda p:int(p.stem))
+for p in paths[:16]:
+    data=torch.load(p,map_location='cpu',weights_only=False)
+    samples=data['samples']; groups=defaultdict(list)
+    for s in samples:
+        m=s['metadata']; groups[s['group_index']].append(s)
+        assert float(s['reward'])==float(m['task_success'])==float(m['reward'])
+        assert s['reward'] in (0,1)
+        assert (m['stop_reason']=='success')==bool(s['reward'])
+        assert m['game_file'] in splits['train'] and m['game_file'] not in splits['eval']
+    rows=[]
+    for group,xs in groups.items():
+        games={s['metadata']['game_file'] for s in xs}; assert len(games)==1
+        game=next(iter(games)); category=Path(game).parent.parent.name.split('-')[0]
+        rows.append({'group':group,'n':len(xs),'success':sum(s['reward'] for s in xs),'task_type':category})
+    report['batches'].append({'step':int(p.stem),'n':len(samples),'success':sum(s['reward'] for s in samples),'mean':sum(s['reward'] for s in samples)/len(samples),'groups':rows,'invalid_actions':sum(s['metadata']['invalid_action_count'] for s in samples),'all_equal_reward_groups':sum(len({s['reward'] for s in xs})==1 for xs in groups.values())})
+    print('BATCH',json.dumps(report['batches'][-1]),flush=True)
+r=wandb.Api(timeout=25).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+report['wandb_summary']={k:v for k,v in dict(r.summary).items() if k in ['eval/step','eval/alfworld_holdout30','train/step','rollout/raw_reward','rollout/step']}
+report['wandb_reward_history']=list(r.scan_history(keys=['rollout/step','rollout/raw_reward'],page_size=100))
+report['binary_reward_verified']=True
+(root/'reward_audit.json').write_text(json.dumps(report,indent=2))
+print('SUMMARY',json.dumps({k:v for k,v in report.items() if k!='batches'},indent=2))

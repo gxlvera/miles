@@ -1,0 +1,11 @@
+import subprocess
+from pathlib import Path
+for p in Path('/proc').iterdir():
+    if not p.name.isdigit(): continue
+    try:
+        cmd=(p/'cmdline').read_bytes()
+        if b'result=ray.get(actor.__ray_call__' in cmd and b'check_logging_reload_process' not in cmd:
+            print('RELOAD_PROCESS',p.name,(p/'status').read_text().splitlines()[:3])
+    except OSError: pass
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+print('TRAIN_LOG_SIZE', (root/'train.log').stat().st_size)

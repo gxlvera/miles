@@ -1,0 +1,12 @@
+import os
+import subprocess
+from pathlib import Path
+
+out = Path('/workspace/experiments/alfworld/alfworld_session_server')
+env = dict(os.environ, PYTHONPATH='/workspace/miles:/root/Megatron-LM', MILES_UPDATE_LAUNCH_SCRIPT_SNAPSHOTS='1', OMP_NUM_THREADS='1')
+with (out / 'parser-launcher-test.log').open('w') as log:
+    result = subprocess.run(['pytest','--confcutdir=tests/manual/launch_scripts','tests/manual/launch_scripts/test_py_launch_scripts.py','-k','alfworld','-q'], cwd='/workspace/miles', env=env, stdout=log, stderr=subprocess.STDOUT, timeout=240)
+print((out / 'parser-launcher-test.log').read_text()[-4000:])
+assert result.returncode == 0
+subprocess.run(['python',str(out/'run_experiment.py'),'--dry-run'],cwd='/workspace/miles',env=env,check=True,timeout=90)
+print('PREFLIGHT_PASSED')

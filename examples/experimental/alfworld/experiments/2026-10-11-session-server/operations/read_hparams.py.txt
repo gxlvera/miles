@@ -1,0 +1,16 @@
+import json
+from pathlib import Path
+import wandb
+r=wandb.Api(timeout=30).run('xiaoleg-carnegie-mellon-university/humans&take-home/6067854d')
+keys=['actor_num_gpus_per_node','rollout_num_gpus','fully_async','update_weights_interval','skip_eval_before_train','use_rollout_logprobs','offload_train','offload_rollout','rollout_batch_size','n_samples_per_prompt','global_batch_size','micro_batch_size','use_dynamic_batch_size','max_tokens_per_gpu','num_steps_per_rollout','num_train_epochs','num_epochs','rollout_max_response_len','rollout_max_context_len','sglang_context_length','seq_length','max_position_embeddings','sglang_server_concurrency','rollout_num_gpus_per_engine','num_rollout','colocate','async_train','async_training','tensor_model_parallel_size','data_parallel_size','pipeline_model_parallel_size','context_parallel_size','lr','advantage_estimator','rollout_temperature','eval_temperature','eval_interval','save_interval','use_session_server','custom_generate_function_path']
+print('WANDB_EFFECTIVE_CONFIG',json.dumps({k:r.config[k] for k in keys if k in r.config},indent=2))
+p=Path('/workspace/models/Qwen3.5-4B/config.json')
+c=json.loads(p.read_text()); t=c.get('text_config',c)
+print('MODEL_CONTEXT', {k:t.get(k) for k in ['max_position_embeddings','rope_scaling']})
+lines=Path('/workspace/experiments/alfworld/alfworld_session_server/train.log').read_text(errors='replace').splitlines()
+import re
+for line in lines:
+    if any(w in line for w in ['context_len=', 'max_total_num_tokens=', 'max_prefill_tokens=', 'max_running_requests=']):
+        found=re.findall(r'(?:context_len|max_total_num_tokens|max_prefill_tokens|max_running_requests)=[^,\s)]+',line)
+        if found: print('SGLANG_CAPACITY',found)
+        break

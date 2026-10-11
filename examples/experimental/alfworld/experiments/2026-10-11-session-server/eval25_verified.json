@@ -1,0 +1,21 @@
+{
+  "completed_optimizer_updates": 25,
+  "native_rollout_id": 24,
+  "episodes": 1066,
+  "successes": 713,
+  "success_rate": 0.6688555347091932,
+  "baseline_successes": 465,
+  "baseline_success_rate": 0.43621013133208253,
+  "improvement_percentage_points": 23.264540337711068,
+  "token_metrics": {
+    "episodes": 1066,
+    "turns": 19392,
+    "per_turn/assistant_tokens/mean": 102.54780321782178,
+    "per_turn/non_assistant_new_tokens/mean": 306.0154187293729,
+    "per_turn/non_assistant_context_tokens/mean": 3993.194771039604,
+    "per_turn/prompt_context_tokens/mean": 5120.670534240924,
+    "episode/turns/mean": 18.191369606003754,
+    "episode/merged_tokens/mean": 7432.324577861164,
+    "episode/success_rate": 0.6688555347091932
+  }
+}

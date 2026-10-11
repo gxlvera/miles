@@ -1,0 +1,20 @@
+import json,re,subprocess
+from pathlib import Path
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+text=(root/'train.log').read_text(errors='replace')
+ids=re.findall(r'raysubmit_[A-Za-z0-9]+',text)
+if ids:
+    info=json.loads((root/'process.json').read_text());info['ray_job_id']=ids[0]
+    (root/'process.json').write_text(json.dumps(info,indent=2))
+    from ray.job_submission import JobSubmissionClient
+    c=JobSubmissionClient('http://127.0.0.1:8265')
+    print('JOB',ids[0],c.get_job_status(ids[0]))
+keys=['rollout_batch_size','n_samples_per_prompt','global_batch_size','actor_num_gpus_per_node','rollout_num_gpus','colocate','fully_async','update_weights_interval','num_steps_per_rollout','skip_eval_before_train','use_rollout_logprobs']
+for key in keys:
+    matches=re.findall(r'(?<![A-Za-z_])'+key+r'=([^,\n)]+)',text)
+    if matches: print('CONFIG',key,matches[0])
+lines=text.splitlines()
+events=[x for x in lines if any(w in x for w in ['Rollout generation:', 'Train step','train 0:', 'train 1:', 'Error:', 'Exception:', 'Traceback','ALFWorld token lengths','successfully loaded checkpoint','update_weights done']) and not any(w in x for w in ['EXEC:','Running entrypoint','WANDB_API_KEY','wandb-key','wandb_v1_'])]
+for s in events[-8:]+lines[-2:]:
+    if not any(w in s for w in ['EXEC:','Running entrypoint','WANDB_API_KEY','wandb-key','wandb_v1_']):print(s[:1300])
+print(subprocess.check_output(['nvidia-smi','--query-gpu=index,utilization.gpu,memory.used','--format=csv,noheader'],text=True))

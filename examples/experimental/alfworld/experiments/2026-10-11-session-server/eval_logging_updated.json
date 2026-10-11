@@ -1,0 +1,20 @@
+{
+  "reloaded": true,
+  "rollout_id": 8,
+  "module": "/__modal/volumes/vo-G82R4qRqrJHOJF0XxAwKmT/miles/examples/experimental/alfworld/token_metrics.py",
+  "sha256": "efd4cf1cebaf9204fdf2fd0850c91fb584bc4fd0373cf3c8940d3afa98a58fbb",
+  "eval_logging": "cross_turn_averages_only",
+  "metric_keys": [
+    "episode/merged_tokens/mean",
+    "episode/success_rate",
+    "episode/turns/mean",
+    "episodes",
+    "per_turn/assistant_tokens/mean",
+    "per_turn/non_assistant_context_tokens/mean",
+    "per_turn/non_assistant_new_tokens/mean",
+    "per_turn/prompt_context_tokens/mean",
+    "turns"
+  ],
+  "actor_id": "648c59b05c8456f90b556fca02000000",
+  "pid": 61026
+}

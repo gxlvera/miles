@@ -1,0 +1,16 @@
+import json
+import os
+import subprocess
+import time
+from pathlib import Path
+
+out = Path('/workspace/experiments/alfworld/alfworld_session_server')
+env = dict(os.environ)
+env.update(PYTHONPATH='/workspace/miles:/root/Megatron-LM:' + env.get('PYTHONPATH', ''), OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1', RAY_USAGE_STATS_ENABLED='0', MILES_SCRIPT_EXTERNAL_RAY='1', NCCL_NVLS_ENABLE='0')
+with (out / 'ray-start.log').open('w') as log:
+    subprocess.run(['ray', 'stop', '--force'], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=120)
+    subprocess.run(['ray', 'start', '--head', '--node-ip-address', '127.0.0.1', '--num-cpus', '16', '--num-gpus', '8', '--object-store-memory', '2147483648', '--disable-usage-stats'], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180, check=True)
+with (out / 'train.log').open('a') as log:
+    proc = subprocess.Popen(['python', '-u', str(out / 'run_experiment.py'), '--steps', '50', '--baseline-complete'], cwd='/workspace/miles', env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+(out / 'process.json').write_text(json.dumps({'pid': proc.pid, 'started_at': time.time(), 'steps': 50, 'mode': 'one_step_async', 'train_gpus': 4, 'rollout_gpus': 4, 'batch_size': 32}, indent=2))
+print('STARTED', proc.pid, flush=True)

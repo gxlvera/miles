@@ -1,0 +1,11 @@
+from ray.job_submission import JobSubmissionClient
+from pathlib import Path
+import subprocess
+c=JobSubmissionClient('http://127.0.0.1:8265')
+for j in c.list_jobs():
+    print(j.submission_id,j.status,j.message)
+root=Path('/workspace/experiments/alfworld/alfworld_session_server')
+for name in ['train.log','ray-start.log']:
+    print(name)
+    for s in (root/name).read_text(errors='replace').splitlines()[-6:]:
+        if not any(w in s for w in ['EXEC:','Running entrypoint','WANDB_API_KEY','wandb-key','wandb_v1_']): print(s[:1400])
