@@ -2699,6 +2699,28 @@ def get_miles_extra_args_provider(add_custom_arguments=None):
                 "Default: exactly-once completion masking + rewards keyed by "
                 "response id.",
             )
+            parser.add_argument(
+                "--use-proxy-server",
+                action="store_true",
+                default=False,
+                help="Serve agent sessions with agent_proxy/: a Router plus replica processes that build prompts "
+                "with continuous token and store turns as incremental deltas. "
+                "Use with --custom-generate-function-path agent_proxy.miles_adapter.generate. The sample picker "
+                "and postprocessor come from --session-sample-picker-path/--session-sample-postprocessor-path.",
+            )
+            parser.add_argument(
+                "--proxy-server-workers",
+                type=int,
+                default=1,
+                help="Number of agent_proxy replica processes.",
+            )
+            parser.add_argument(
+                "--proxy-server-port",
+                type=int,
+                default=None,
+                help="Base port for the agent_proxy replicas; replica i listens on this port plus i. "
+                "Defaults to a dynamically allocated port.",
+            )
             return parser
 
         def add_user_provided_function_arguments(parser):
@@ -3286,6 +3308,27 @@ def miles_validate_args(args):
             raise ValueError(
                 f"--use-session-server v2 does not support {', '.join(unsupported)}; v2 returns list[Sample]"
             )
+
+    if args.use_proxy_server:
+        if args.use_session_server:
+            raise ValueError("--use-proxy-server and --use-session-server cannot be used together")
+        if args.proxy_server_workers < 1:
+            raise ValueError("--proxy-server-workers must be at least 1")
+        if not args.hf_checkpoint:
+            raise ValueError("--use-proxy-server requires --hf-checkpoint (the replicas load its tokenizer)")
+        unsupported = [
+            flag
+            for enabled, flag in (
+                (args.partial_rollout, "--partial-rollout"),
+                (args.use_rollout_indexer_replay, "--use-rollout-indexer-replay"),
+                (args.use_sampling_support_replay, "--use-sampling-support-replay"),
+                (args.rollout_top_logprobs_num, "--rollout-top-logprobs-num"),
+                (args.group_rm, "--group-rm"),
+            )
+            if enabled
+        ]
+        if unsupported:
+            raise ValueError(f"--use-proxy-server does not support {', '.join(unsupported)}")
 
     if args.use_session_server and args.use_rollout_routing_replay and args.pause_generation_mode == "retract":
         logger.warning(

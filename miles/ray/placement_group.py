@@ -16,7 +16,7 @@ from miles.ray.specs.inference import (
     compute_router_providers,
     create_inference_controller_handle,
 )
-from miles.ray.specs.rollout import create_rollout_executor_handle
+from miles.ray.specs.rollout import compute_proxy_router_provider, create_rollout_executor_handle
 from miles.ray.specs.train import (
     ACTOR_ROLE,
     CRITIC_ROLE,
@@ -378,6 +378,12 @@ async def create_rollout_components(args) -> RolloutComponents:
             capability.static_worker_provider(pool_id=SESSION_SERVER_POOL_ID) if args.use_session_server else None
         )
         await wait_session_server_ready(args, provider=session_server_provider)
+        proxy_router_provider = compute_proxy_router_provider(args, capability=capability)
+        if proxy_router_provider is not None:
+            # agent_proxy/ is a top-level folder outside the miles package; import it only when it is used.
+            from agent_proxy.miles_adapter import wait_proxy_server_ready
+
+            await wait_proxy_server_ready(args, provider=proxy_router_provider)
 
     rollout_executor = create_rollout_executor_handle(capability=capability)
     await wait_until_worker_not_initialized(rollout_executor)

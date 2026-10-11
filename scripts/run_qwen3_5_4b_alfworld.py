@@ -1,4 +1,4 @@
-"""Train Qwen3.5-4B on ALFWorld through the unmodified Miles Session Server v2.
+"""Train Qwen3.5-4B on ALFWorld through Miles Session Server v2, or through agent_proxy/.
 
 Requires a Miles GPU environment, converted Qwen3.5-4B checkpoint, and indexed
 ALFWorld games. See examples/experimental/alfworld/README.md for preparation.
@@ -11,6 +11,7 @@ Args:
   --num-gpus-per-node / --tensor-model-parallel-size: Single-node GPU layout.
   --max-steps / --max-response-len: Per-episode turns and per-call output tokens.
   --per-turn-samples: Split each episode into per-turn training samples (default: off).
+  --use-proxy-server: Serve sessions with agent_proxy/ (default: off).
   --extra-args: Additional Miles train.py flags.
 
 Example:
@@ -40,6 +41,7 @@ class ScriptArgs(U.ExecuteTrainConfig):
     max_response_len: int = 4096
     max_tokens_per_gpu: int = 24576
     per_turn_samples: bool = False
+    use_proxy_server: bool = False
     extra_args: str = ""
 
     def __post_init__(self):
@@ -58,6 +60,8 @@ class ScriptArgs(U.ExecuteTrainConfig):
             < 1
         ):
             raise ValueError("GPU, batch, turn and token counts must be positive")
+        if self.per_turn_samples and self.use_proxy_server:
+            raise ValueError("--per-turn-samples splits Session Server v2 output; it does not apply to agent_proxy")
         if self.n_samples_per_prompt < 2:
             raise ValueError("GRPO needs at least two samples per prompt")
         if self.num_gpus_per_node % self.tensor_model_parallel_size:
@@ -75,11 +79,21 @@ class ScriptArgs(U.ExecuteTrainConfig):
 
 
 def execute(args: ScriptArgs):
-    generate_path = (
-        "examples.experimental.alfworld.per_turn.generate"
-        if args.per_turn_samples
-        else "miles.rollout.generate_hub.agentic_tool_call.generate"
-    )
+    if args.use_proxy_server:
+        generate_path = "agent_proxy.miles_adapter.generate"
+        # agent_proxy renders prompts from the checkpoint's own chat template with continuous token, so no
+        # --tito-model. SGLang's reasoning/tool-call parsers are named explicitly (the qwen35 TITO values).
+        session_args = (
+            "--use-proxy-server --proxy-server-workers 1 "
+            "--sglang-reasoning-parser qwen3 --sglang-tool-call-parser qwen3_coder "
+        )
+    else:
+        generate_path = (
+            "examples.experimental.alfworld.per_turn.generate"
+            if args.per_turn_samples
+            else "miles.rollout.generate_hub.agentic_tool_call.generate"
+        )
+        session_args = "--use-session-server v2 --tito-model qwen35 --session-server-workers 1 "
     ckpt_args = (
         f"--hf-checkpoint {shlex.quote(args.model_dir + '/Qwen3.5-4B')} "
         f"--ref-load {shlex.quote(args.model_dir + '/Qwen3.5-4B_torch_dist')} "
@@ -95,7 +109,7 @@ def execute(args: ScriptArgs):
         "--custom-agent-function-path examples.experimental.alfworld.agent.run "
         "--custom-agent-function-mode subproc "
         "--custom-rm-path examples.experimental.alfworld.agent.require_reward "
-        "--use-session-server v2 --tito-model qwen35 --session-server-workers 1 "
+        f"{session_args}"
         f"--num-rollout {args.num_rollout} --rollout-batch-size {args.rollout_batch_size} "
         f"--n-samples-per-prompt {args.n_samples_per_prompt} "
         f"--rollout-max-response-len {args.max_response_len} --rollout-temperature 1 "

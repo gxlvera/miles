@@ -17,10 +17,20 @@ def _compute_all_specs(args) -> list[BaseWorkerSpec]:
         *inference.specs_router(args),
         *inference.specs_inference_registration_reporter(args),
         inference.spec_session_server(args),
+        *_specs_agent_proxy(args),
         *inference.specs_inference_engine(args),
         *train.specs_trainer_controller(args),
         *train.specs_trainer(args),
     ]
+
+
+def _specs_agent_proxy(args) -> list[BaseWorkerSpec]:
+    if not getattr(args, "use_proxy_server", False):
+        return []
+    # agent_proxy/ is a top-level folder outside the miles package; import it only when it is used.
+    from agent_proxy.miles_adapter import specs_proxy_server
+
+    return specs_proxy_server(args)
 
 
 def compute_specs_from_argv(argv: list[str]) -> list[BaseWorkerSpec]:
