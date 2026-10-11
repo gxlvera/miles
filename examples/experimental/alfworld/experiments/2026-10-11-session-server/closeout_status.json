@@ -1,5 +1,5 @@
 {
-  "status": "evaluation_and_archive_verified",
+  "status": "complete",
   "ray_job_status": "SUCCEEDED",
   "completed_optimizer_updates": 50,
   "final_success_rate": 0.8151969981238274,
@@ -14,7 +14,25 @@
   "local_backup_files": 93,
   "local_backup_bytes": 46752606,
   "sandbox_id": "sb-qKaDixw8FY32QYQarDm3Bs",
-  "sandbox_released": false,
+  "sandbox_released": true,
   "git_branch": "aflworld",
-  "push_verified": false
+  "push_verified": true,
+  "release_verification": {
+    "status": "complete",
+    "released_at_utc": "2026-10-11T08:56:29.501553+00:00",
+    "sandbox_id": "sb-qKaDixw8FY32QYQarDm3Bs",
+    "sandbox_released": true,
+    "sandbox_returncode": 137,
+    "gpu_allocation_released": "8 x H100",
+    "volume_retained": "h100-dev-files",
+    "post_termination_volume_read_verified": true,
+    "checkpoint_files_verified_after_termination": 40,
+    "checkpoint_total_bytes": 117837870411,
+    "source_commit": "1d40847a994dd773208f6fcc9d64a0fd4c0491c0",
+    "pushed_branch": "aflworld",
+    "remote_sha_verified": "1d40847a994dd773208f6fcc9d64a0fd4c0491c0",
+    "wandb_state": "finished",
+    "final_eval_successes": 869,
+    "final_eval_episodes": 1066
+  }
 }

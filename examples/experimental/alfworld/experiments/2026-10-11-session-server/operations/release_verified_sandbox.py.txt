@@ -1,0 +1,28 @@
+"""Release only the completed ALFWorld Sandbox after verifying recovery artifacts."""
+import datetime,hashlib,json,subprocess
+from pathlib import Path
+import modal
+root=Path(__file__).resolve().parents[2];out=root/'outputs/alfworld';repo=root/'work/miles-fork'
+sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
+remote_sha=subprocess.check_output(['git','ls-remote','--heads','origin','aflworld'],cwd=repo,text=True).split()[0]
+assert sha==remote_sha
+results=json.loads((out/'final_results.json').read_text()); assert results['status']=='step50_eval_verified' and results['wandb_state_at_verification']=='finished'
+proof=json.loads((out/'volume_archive_verification.json').read_text()); assert proof['latest_checkpoint_index']==49 and len(proof['checked_files'])==40
+vol=modal.Volume.from_name('h100-dev-files');prefix='/experiments/alfworld/alfworld_session_server'
+with vol.batch_upload(force=True) as upload:
+    for name in ['miles-aflworld.bundle','DEBUGGING.txt','RECOVERY.txt','final_results.json','checkpoint_manifest.json','volume_archive_verification.json','local_artifacts_manifest.json']:
+        upload.put_file(out/name,prefix+'/archive/'+name)
+for name in ['miles-aflworld.bundle','final_results.json','DEBUGGING.txt']:
+    assert hashlib.sha256(b''.join(vol.read_file(prefix+'/archive/'+name))).digest()==hashlib.sha256((out/name).read_bytes()).digest()
+sb=modal.Sandbox.from_id('sb-qKaDixw8FY32QYQarDm3Bs')
+if sb.poll() is None:
+    p=sb.exec('python','-c',"from ray.job_submission import JobSubmissionClient; s=JobSubmissionClient('http://127.0.0.1:8265').get_job_status('raysubmit_iTJ2V661BJZveEnb'); print(s); assert str(s)=='SUCCEEDED'",timeout=45)
+    print(p.stdout.read()); assert p.wait()==0
+    sb.terminate(wait=True)
+returncode=sb.poll();assert returncode is not None
+manifest=json.loads(b''.join(vol.read_file(prefix+'/checkpoint_manifest.json')));assert manifest['latest_completed_checkpoint_index']==49
+entries={e.path.lstrip('/'):e.size for e in vol.listdir(prefix+'/checkpoints',recursive=True)}
+for f in manifest['files']: assert entries[(prefix+'/'+f['path']).lstrip('/')]==f['bytes']
+cloud_result=json.loads(b''.join(vol.read_file(prefix+'/archive/final_results.json')));assert cloud_result['evaluations'][-1]['successes']==869
+report={'status':'complete','released_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sandbox_id':sb.object_id,'sandbox_released':True,'sandbox_returncode':returncode,'gpu_allocation_released':'8 x H100','volume_retained':'h100-dev-files','post_termination_volume_read_verified':True,'checkpoint_files_verified_after_termination':len(manifest['files']),'checkpoint_total_bytes':manifest['total_bytes'],'source_commit':sha,'pushed_branch':'aflworld','remote_sha_verified':remote_sha,'wandb_state':'finished','final_eval_successes':869,'final_eval_episodes':1066}
+(out/'release_verification.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
