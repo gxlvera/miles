@@ -119,6 +119,7 @@ def _spec_replicas(args) -> CommandWorkerSpec:
             use_rollout_routing_replay=args.use_rollout_routing_replay,
             use_addition_r3=getattr(args, "pause_generation_mode", None) != "retract",
             num_layers=getattr(args, "num_layers", None),
+            message_normalizer_path=args.proxy_message_normalizer_path,
             session_sample_picker_path=args.session_sample_picker_path,
             session_sample_postprocessor_path=args.session_sample_postprocessor_path,
         )

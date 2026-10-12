@@ -1767,6 +1767,27 @@ class TestSessionServerV2Validation:
         assert str(exc_info.value) == (f"--use-session-server v2 does not support {flag}; v2 returns list[Sample]")
 
 
+class TestProxyServerValidation:
+    def _parse(self, extra):
+        parser = argparse.ArgumentParser()
+        get_miles_extra_args_provider()(parser)
+        return parser.parse_args([
+            "--use-proxy-server", "--hf-checkpoint", "/local/qwen", "--num-rollout", "1",
+            *REQUIRED_ARGS, *extra,
+        ])
+
+    def test_plain_proxy_validates_before_sampling_mode_has_been_derived(self):
+        args = self._parse([])
+        assert not hasattr(args, "use_sampling_support_replay")
+        miles_validate_args(args)
+        assert args.use_sampling_support_replay is False
+
+    @pytest.mark.parametrize("extra", [["--rollout-top-k", "32"], ["--rollout-top-p", "0.9"]])
+    def test_proxy_rejects_unsupported_sampling_support(self, extra):
+        with pytest.raises(ValueError, match="use-proxy-server does not support"):
+            miles_validate_args(self._parse(extra))
+
+
 class TestSessionServerScalingArguments:
     def _parse(self, extra):
         parser = argparse.ArgumentParser()

@@ -75,9 +75,15 @@ class TrajectoryManager:
     the same turn become siblings, whichever finishes first.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, message_normalizer=None) -> None:
         self.nodes: list[TurnNode] = []
         self._tries: dict[bytes, _TrieNode] = {}
+        self._message_normalizer = message_normalizer
+
+    def _fingerprint(self, message: dict[str, Any]) -> bytes:
+        if self._message_normalizer is not None:
+            message = self._message_normalizer(message)
+        return message_fingerprint(message)
 
     def prepare(
         self,
@@ -88,7 +94,7 @@ class TrajectoryManager:
         context_key: bytes,
     ) -> PreparedTurn:
         """Pick the parent turn and render the prompt with continuous token."""
-        fingerprints = [message_fingerprint(message) for message in messages]
+        fingerprints = [self._fingerprint(message) for message in messages]
         parent_id, depth = self._find_parent(context_key, fingerprints)
 
         if parent_id is None:
@@ -146,7 +152,7 @@ class TrajectoryManager:
         # earlier turn, where CT renders the cut text as ordinary context.
         if not node.truncated:
             self._index(
-                prepared.context_key, [*prepared.fingerprints, message_fingerprint(generation.message)], node.node_id
+                prepared.context_key, [*prepared.fingerprints, self._fingerprint(generation.message)], node.node_id
             )
         return node
 

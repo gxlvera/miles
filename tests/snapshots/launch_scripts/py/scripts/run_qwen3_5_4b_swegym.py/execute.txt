@@ -1,0 +1,133 @@
+### 0
+pkill -9 sglang; sleep 3; ray stop
+  --force; pkill -9 ray; pkill -9 miles; sleep 3; pkill -9 ray; pkill -9 miles; pkill -9 redis; true; 
+
+### 1
+export PYTHONUNBUFFERED=1 && ray start
+  --head
+  --node-ip-address 127.0.0.1
+  --num-gpus 8
+  --disable-usage-stats
+
+### 2
+nvidia-smi topo -m 2>/dev/null | grep -o 'NV[0-9][0-9]*' | wc -l
+
+### 3
+[launcher lifetime] ray job submit
+  --address=http://127.0.0.1:8265
+  --runtime-env-json='{"env_vars": {"PYTHONUNBUFFERED": "1", "CUDA_DEVICE_MAX_CONNECTIONS": "1", "NCCL_NVLS_ENABLE": "0", "no_proxy": "127.0.0.1,127.0.0.1", "MASTER_ADDR": "127.0.0.1", "PYTHONPATH": "<REPO_ROOT>:/root/Megatron-LM:<REPO_ROOT>/examples/experimental/swegym:/frozen/pythonpath", "SWEGYM_DATA_DIR": "/root/datasets/swegym", "SWEGYM_EXPERIMENT_ID": "260101-000000-000", "SWEGYM_PROXY_WORKERS": "4", "SWEGYM_AGENT_CONCURRENCY": "16", "SWEGYM_TRIALS_DIR": "/root/shared_data/trials", "SWEGYM_PROXY_PUBLIC_URL": "https://example.modal.host", "SWEGYM_GATEWAY_TOKEN_FILE": "/tmp/swegym-gateway-token", "SWEGYM_MAX_TURNS": "80", "SWEGYM_CONTEXT_LENGTH": "65536", "SWEGYM_MAX_OUTPUT_TOKENS": "16000", "SWEGYM_AGENT_TIMEOUT": "2400", "E2B_API_KEY_FILE": "/root/.config/e2b/api_key"}}'
+  -- python3 <REPO_ROOT>/train_async.py
+  --spec miles_plugins.models.qwen3_5 get_qwen3_5_spec
+  --disable-bias-linear
+  --qk-layernorm
+  --group-query-attention
+  --num-attention-heads 16
+  --num-query-groups 4
+  --kv-channels 256
+  --num-layers 32
+  --hidden-size 2560
+  --ffn-hidden-size 9216
+  --normalization RMSNorm
+  --apply-layernorm-1p
+  --position-embedding-type rope
+  --norm-epsilon 1e-6
+  --rotary-percent 0.25
+  --swiglu
+  --vocab-size 248320
+  --rotary-base 10000000
+  --attention-output-gate
+  --hf-checkpoint /root/models/Qwen3.5-4B
+  --ref-load /root/models/Qwen3.5-4B_torch_dist
+  --load /root/shared_data/checkpoints
+  --save /root/shared_data/checkpoints
+  --save-interval 5
+  --prompt-data /root/datasets/swegym/train.jsonl
+  --input-key prompt
+  --metadata-key metadata
+  --num-rollout 40
+  --rollout-batch-size 4
+  --n-samples-per-prompt 16
+  --global-batch-size 64
+  --rollout-max-response-len 16000
+  --rollout-temperature 1.0
+  --rollout-shuffle
+  --balance-data
+  --custom-generate-function-path agent_proxy.miles_adapter.generate
+  --custom-agent-function-path agent.run
+  --custom-agent-function-mode inline
+  --custom-rm-path agent.reward
+  --dynamic-sampling-filter-path miles.rollout.filter_hub.dynamic_sampling_filters.check_no_aborted
+  --use-proxy-server
+  --proxy-server-workers 4
+  --proxy-server-port 30000
+  --proxy-message-normalizer-path claude_history.normalize_message
+  --max-seq-len 65536
+  --session-sample-picker-path branch_policy.longest
+  --session-sample-postprocessor-path branch_policy.postprocess
+  --apply-chat-template-kwargs '{"enable_thinking":true}'
+  --tensor-model-parallel-size 2
+  --sequence-parallel
+  --pipeline-model-parallel-size 1
+  --context-parallel-size 2
+  --expert-model-parallel-size 1
+  --expert-tensor-parallel-size 1
+  --recompute-granularity full
+  --recompute-method uniform
+  --recompute-num-layers 1
+  --use-dynamic-batch-size
+  --max-tokens-per-gpu 24576
+  --log-probs-chunk-size 256
+  --optimizer-cpu-offload
+  --overlap-cpu-optimizer-d2h-h2d
+  --use-precision-aware-optimizer
+  --advantage-estimator grpo
+  --use-tis
+  --use-kl-loss
+  --kl-loss-coef 0.001
+  --kl-loss-type low_var_kl
+  --entropy-coef 0
+  --eps-clip 0.2
+  --eps-clip-high 0.28
+  --optimizer adam
+  --lr 1e-6
+  --lr-decay-style constant
+  --weight-decay 0.1
+  --adam-beta1 0.9
+  --adam-beta2 0.98
+  --rollout-num-gpus-per-engine 2
+  --sglang-mem-fraction-static 0.65
+  --sglang-served-model-name Qwen3.5-4B
+  --sglang-max-running-requests 8
+  --sglang-cuda-graph-bs-decode 1 2 4 8
+  --sglang-tool-call-parser qwen3_coder
+  --sglang-reasoning-parser qwen3
+  --sglang-context-length 65536
+  --sglang-router-port 31000
+  --attention-dropout 0
+  --hidden-dropout 0
+  --accumulate-allreduce-grads-in-fp32
+  --attention-softmax-in-fp32
+  --attention-backend flash
+  --actor-num-nodes 1
+  --actor-num-gpus-per-node 4
+  --rollout-num-gpus 4
+  --update-weights-interval 1
+  --num-gpus-per-node 8
+  --dump-details /root/shared_data/traces
+  --custom-rollout-log-function-path ablation_metrics.log_rollout
+  --fully-async
+  --max-weight-staleness 2
+  --async-max-concurrent-samples 128
+  --async-data-buffer-capacity-factor 2
+  --async-unused-samples-handler retry 
+  --use-wandb
+  --disable-wandb-random-suffix
+  --wandb-project miles-swegym
+  --wandb-team ''
+  --wandb-group 260101-000000-000
+  --wandb-run-id 260101-000000-000  
+  --deploy-component all
+
+### 4
+ray stop
+  --force

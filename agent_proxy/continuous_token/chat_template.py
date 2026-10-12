@@ -20,6 +20,8 @@ Copied from verl (``verl/utils/tokenizer/chat_template.py`` and ``tokenizer.py``
 
 from typing import Any
 
+from miles.utils.chat_template_utils.template import normalize_tool_arguments
+
 
 def normalize_token_ids(tokenized_output: Any) -> list[int]:
     """Flatten what ``apply_chat_template(tokenize=True)`` returns into ``list[int]``.
@@ -54,6 +56,10 @@ def apply_chat_template(
     synthetic contexts CT renders (e.g. system + assistant). In that case render behind
     a dummy user turn and cut the dummy's tokens off again.
     """
+    # OpenAI/Anthropic conversion produces JSON strings, while HF Qwen templates
+    # iterate argument objects. Reuse Miles' renderer normalization without
+    # altering the stored message or any argument values.
+    messages = normalize_tool_arguments(messages, "dict")
     render_kwargs = dict(tokenize=True, tools=tools, return_dict=False, **kwargs)
     try:
         return normalize_token_ids(

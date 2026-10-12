@@ -2709,6 +2709,14 @@ def get_miles_extra_args_provider(add_custom_arguments=None):
                 "and postprocessor come from --session-sample-picker-path/--session-sample-postprocessor-path.",
             )
             parser.add_argument(
+                "--proxy-message-normalizer-path",
+                type=str,
+                default=None,
+                help="Optional sync message-to-message projection used only for Proxy history identity. "
+                "The recipe must ensure projected messages render identically in its template. "
+                "Original messages and generated tokens are preserved.",
+            )
+            parser.add_argument(
                 "--proxy-server-workers",
                 type=int,
                 default=1,
@@ -3309,6 +3317,9 @@ def miles_validate_args(args):
                 f"--use-session-server v2 does not support {', '.join(unsupported)}; v2 returns list[Sample]"
             )
 
+    args.use_sampling_support_replay = args.rollout_top_p < 1.0 or args.rollout_top_k > 0
+    args.rollout_sampling_logprobs_mode = "support" if args.use_sampling_support_replay else "selected"
+
     if args.use_proxy_server:
         if args.use_session_server:
             raise ValueError("--use-proxy-server and --use-session-server cannot be used together")
@@ -3321,7 +3332,7 @@ def miles_validate_args(args):
             for enabled, flag in (
                 (args.partial_rollout, "--partial-rollout"),
                 (args.use_rollout_indexer_replay, "--use-rollout-indexer-replay"),
-                (args.use_sampling_support_replay, "--use-sampling-support-replay"),
+                (args.use_sampling_support_replay, "--rollout-top-p < 1 or --rollout-top-k > 0"),
                 (args.rollout_top_logprobs_num, "--rollout-top-logprobs-num"),
                 (args.group_rm, "--group-rm"),
             )
@@ -3342,8 +3353,6 @@ def miles_validate_args(args):
         raise ValueError(f"--rollout-top-p must be in (0, 1], got {args.rollout_top_p}")
     if args.rollout_top_k != -1 and args.rollout_top_k < 1:
         raise ValueError(f"--rollout-top-k must be -1 or at least 1, got {args.rollout_top_k}")
-    args.use_sampling_support_replay = args.rollout_top_p < 1.0 or args.rollout_top_k > 0
-    args.rollout_sampling_logprobs_mode = "support" if args.use_sampling_support_replay else "selected"
     if args.use_sampling_support_replay:
         if args.rollout_top_k == -1:
             raise ValueError(

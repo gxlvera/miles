@@ -64,6 +64,7 @@ class ReplicaConfig(FrozenStrictBaseModel):
     # return the rows a turn adds.
     use_addition_r3: bool = True
     num_layers: int | None = None
+    message_normalizer_path: str | None = None
     session_sample_picker_path: str = "miles.rollout.session.v2.picker_hub.drop_same_prompt_retries"
     session_sample_postprocessor_path: str = "miles.rollout.session.v2.postprocessor_hub.default_postprocess"
 
@@ -91,6 +92,7 @@ class Replica:
         self._builders: dict[str, ContinuousTokenBuilder] = {}
         self._sample_picker = load_function(config.session_sample_picker_path, sync_required=True)
         self._sample_postprocessor = load_function(config.session_sample_postprocessor_path, sync_required=True)
+        self._message_normalizer = load_function(config.message_normalizer_path, sync_required=True)
 
     def create_session(self, params: CreateSessionRequest) -> str:
         session_id = uuid.uuid4().hex
@@ -98,6 +100,7 @@ class Replica:
             session_id=session_id,
             evaluation=params.evaluation,
             sampling_defaults=params.model_dump(exclude={"evaluation"}, exclude_none=True),
+            manager=TrajectoryManager(message_normalizer=self._message_normalizer),
         )
         return session_id
 
