@@ -162,6 +162,10 @@ def train(launcher_args: str = ""):
 
 def _run(launcher_args: str) -> None:
     miles = sync_local_miles()
+    # Modal's gVisor hands out ephemeral ports from 16000, over the 20000+ block Miles allocates server
+    # ports from: an outgoing connection took an engine's port between its allocation and its bind, and the
+    # run waited for that engine forever. Use Linux's default range, which Miles assumes.
+    Path("/proc/sys/net/ipv4/ip_local_port_range").write_text("32768 60999")
 
     def commit_periodically():
         while True:
