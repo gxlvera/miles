@@ -73,7 +73,7 @@ async def run(base_url: str, prompt: str, request_kwargs: dict, metadata: dict, 
     view = await asyncio.to_thread(_fit, original)
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": [await asyncio.to_thread(_image_block, view), {"type": "text", "text": prompt}]},
+        {"role": "user", "content": [await asyncio.to_thread(image_block, view), {"type": "text", "text": prompt}]},
     ]
     num_tool_calls = 0
     async with httpx.AsyncClient(timeout=httpx.Timeout(600)) as client:
@@ -146,7 +146,7 @@ def _zoom(original: Image.Image, tool_call: dict) -> dict:
         text = f"Zoomed in on the image to the region {bbox}"
         if arguments.get("label"):
             text += f" with label {arguments['label']}"
-        content = [_image_block(_fit(original.crop(box))), {"type": "text", "text": text + "."}]
+        content = [image_block(_fit(original.crop(box))), {"type": "text", "text": text + "."}]
     return {"role": "tool", "tool_call_id": tool_call.get("id"), "content": content}
 
 
@@ -180,7 +180,7 @@ def _fit(image: Image.Image) -> Image.Image:
     return image.resize((max(1, int(width * scale)), max(1, int(height * scale))), Image.Resampling.LANCZOS)
 
 
-def _image_block(image: Image.Image) -> dict:
+def image_block(image: Image.Image) -> dict:
     # PNG: SGLang and the trainer must decode identical pixels, and lossless PNG goes through PIL on both.
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")

@@ -150,6 +150,45 @@ index 110c1d9..0571325 100644
  
              state.finished = recv_obj.finished_reasons[i] is not None
  
+diff --git a/python/sglang/srt/models/qwen2_5_vl.py b/python/sglang/srt/models/qwen2_5_vl.py
+index 1107106..210b04b 100644
+--- a/python/sglang/srt/models/qwen2_5_vl.py
++++ b/python/sglang/srt/models/qwen2_5_vl.py
+@@ -533,8 +533,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+         window_index = window_index.to(device=x.device)
+         reverse_indices = permute_inv(window_index)
+ 
+-        # Ensure rotary_pos_emb is on the same device/dtype as x
+-        rotary_pos_emb = rotary_pos_emb.to(device=x.device, dtype=x.dtype)
++        # Angles stay fp32, as in transformers: rounded to bf16, the large ones are off by up to half a radian.
++        rotary_pos_emb = rotary_pos_emb.to(device=x.device)
+ 
+         seq_len, _ = x.size()
+ 
+@@ -547,12 +547,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+         rotary_pos_emb = rotary_pos_emb[window_index, :, :]
+         rotary_pos_emb = rotary_pos_emb.reshape(seq_len, -1)
+         emb = torch.cat((rotary_pos_emb, rotary_pos_emb), dim=-1)
++        # cos and sin stay fp32 too: apply_rotary_pos_emb rotates q and k in fp32, as transformers does.
+         position_embeddings = (emb.cos(), emb.sin())
+-        # After building position_embeddings, make sure both cos and sin are on the same device/dtype as the attention input
+-        position_embeddings = (
+-            position_embeddings[0].to(x.device, x.dtype),
+-            position_embeddings[1].to(x.device, x.dtype),
+-        )
+ 
+         # compute cu_seqlens - move cu_seqlens to GPU and make it int32
+         cu_seqlens = torch.cat(
+@@ -627,7 +623,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+ 
+         window_index = window_index.to(device=x.device)
+         reverse_indices = permute_inv(window_index)
+-        rotary_pos_emb = rotary_pos_emb.to(device=x.device, dtype=x.dtype)
++        # Angles stay fp32, as in transformers: rounded to bf16, the large ones are off by up to half a radian.
++        rotary_pos_emb = rotary_pos_emb.to(device=x.device)
+ 
+         # patch token num
+         seq_len, _ = x.size()
 diff --git a/python/sglang/srt/multimodal/processors/qwen_vl.py b/python/sglang/srt/multimodal/processors/qwen_vl.py
 index 4b295a3..f64b30c 100644
 --- a/python/sglang/srt/multimodal/processors/qwen_vl.py

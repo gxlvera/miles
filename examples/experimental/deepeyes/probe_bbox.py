@@ -15,9 +15,8 @@ import asyncio
 import json
 
 import httpx
+from examples.experimental.deepeyes.agent import SYSTEM_PROMPT, ZOOM_TOOL, _fit, image_block
 from PIL import Image
-
-from examples.experimental.deepeyes.agent import SYSTEM_PROMPT, ZOOM_TOOL, _fit, _image_block
 
 
 async def main() -> None:
@@ -48,7 +47,7 @@ async def _first_turn(client: httpx.AsyncClient, url: str, row: dict) -> list[di
     view = _fit(Image.open(row["metadata"]["image"]).convert("RGB"))
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": [_image_block(view), {"type": "text", "text": row["prompt"]}]},
+        {"role": "user", "content": [image_block(view), {"type": "text", "text": row["prompt"]}]},
     ]
     body = {"model": "policy", "messages": messages, "tools": [ZOOM_TOOL], "temperature": 1.0, "max_tokens": 1024}
     reply = (await client.post(f"{url}/v1/chat/completions", json=body)).json()

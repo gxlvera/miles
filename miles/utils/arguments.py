@@ -3319,6 +3319,11 @@ def miles_validate_args(args):
         if not args.use_miles_router:
             # Continuous token runs in SGLang and needs prefix_message_count, which the Rust sglang_router drops.
             raise ValueError("--use-agent-server requires --use-miles-router, which forwards request fields unchanged")
+        # Overrides --sglang-sampling-defaults: agent server rollouts go through SGLang's chat API, which under
+        # "model" fills the sampling fields a request leaves unset from the checkpoint's generation_config.json
+        # (Qwen2.5-VL: repetition_penalty 1.05). The trainer reproduces none of them, so the rollout args must
+        # be the only source of sampling settings.
+        args.sglang_sampling_defaults = "openai"
         unsupported = [
             flag
             for enabled, flag in (

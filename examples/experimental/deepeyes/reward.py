@@ -51,7 +51,7 @@ async def compute_score(
         format_error = True
 
     if options:
-        correct = _choice_judge(answer, prediction, options)
+        correct = choice_judge(answer, prediction, options)
     else:
         correct = bool(prediction) and await _judge(question, answer, prediction)
     if len(prediction) >= 1000:  # long answers are judge hacking in the recipe
@@ -103,7 +103,7 @@ def _words(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
-def _choice_judge(label: str, prediction: str, options: dict[str, str]) -> bool:
+def choice_judge(label: str, prediction: str, options: dict[str, str]) -> bool:
     """The picked letter ("B", "(B)", "B. red") or the text of the picked option equals the correct option."""
     letter = re.match(r"\s*\(?([A-Z])\)?(?:[\s.:)]|$)", prediction)
     if letter and letter.group(1) in options:
