@@ -164,7 +164,10 @@ def _claude_code_kwargs(
 ) -> dict[str, Any]:
     # WebSearch / WebFetch are Anthropic server-side tools; the session server
     # translates client-side tools onto an OpenAI-compatible backend only.
-    kwargs: dict[str, Any] = {"disallowed_tools": "WebSearch,WebFetch"}
+    # HARBOR_CLAUDE_CODE_DISALLOWED_TOOLS replaces the default, e.g. to also turn off subagents (Agent,Task).
+    kwargs: dict[str, Any] = {
+        "disallowed_tools": os.getenv("HARBOR_CLAUDE_CODE_DISALLOWED_TOOLS", "WebSearch,WebFetch")
+    }
     if max_turns := _env_int("HARBOR_AGENT_MAX_ITERATIONS"):
         kwargs["max_turns"] = max_turns
     return kwargs

@@ -14,7 +14,7 @@
 """Continuous token (CT) builders: the generic builder and Qwen.
 
 Ported from verl ``verl/utils/tokenizer/continuous_token.py``, branch ``gxl-ct-rollback-support``
-(commit e18c3167). Text only.
+(commit e18c3167).
 
 The builder only builds prompts. The backend's output tokens are appended as they are, and loss
 masks are derived from the turn tree when samples are exported. A rollback is a new branch from
@@ -25,13 +25,20 @@ rendered inside a small synthetic context (fake system + user, plus a fake assis
 calls for tool results), and the tokens that the group adds are appended to the exact tokens the
 model already saw and produced. A subclass then fixes the junction; Qwen, for example, stops
 generating at ``<|im_end|>`` while its template expects ``<|im_end|>\n``.
+
+Images: a group with images is rendered to text and encoded by the model's processor together with
+its images (``encode_images``), so its placeholders come out expanded by the processor itself. The
+synthetic context never holds images.
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from agent_proxy.continuous_token.chat_template import apply_chat_template
+# Relative imports: this package is also copied into SGLang as ``sglang.srt.continuous_token``.
+from .chat_template import apply_chat_template, render_chat_text
+from .media import message_images
 
 _SUPPORTED_APPEND_ROLES = frozenset({"tool", "user", "system", "assistant"})
 _SYNTHETIC_SYSTEM_MESSAGE: dict[str, Any] = {"role": "system", "content": "continuous token synthetic system"}
@@ -48,7 +55,7 @@ class MergeResult:
 
     ``inserted_token_ids`` are boundary tokens CT added itself (never model output), and
     ``removed_prefix_token_count`` counts trailing tokens of the previous sequence that were
-    dropped before appending. The proxy stores ``len(previous) - removed_prefix_token_count``
+    dropped before appending. The agent server stores ``len(previous) - removed_prefix_token_count``
     as the new turn's ``prefix_len``.
     """
 
@@ -61,16 +68,26 @@ class MergeResult:
 class ContinuousTokenBuilder:
     """Build the first prompt of a conversation and extend an existing token sequence with new messages.
 
-    Public API used by the proxy: ``build_initial_tokens`` and ``merge_context_tokens``.
+    Public API: ``build_initial_tokens`` and ``merge_context_tokens``. A builder given ``encode_images``
+    collects the processor outputs of the images it encoded in ``image_inputs``, so it serves one request.
     Template-specific behavior lives in the hooks ``_tokenize_tool_group``,
     ``_tokenize_single_non_tool``, ``_merge_context_group`` and ``_merge_context_token_ids``.
     """
 
     allowed_append_roles: frozenset[str] = _SUPPORTED_APPEND_ROLES
 
-    def __init__(self, tokenizer: Any, *, chat_template_kwargs: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        tokenizer: Any,
+        *,
+        chat_template_kwargs: dict[str, Any] | None = None,
+        encode_images: Callable[[str, list[str]], tuple[list[int], dict[str, Any]]] | None = None,
+    ):
         self.tokenizer = tokenizer
         self.chat_template_kwargs = chat_template_kwargs or {}
+        # (text, image references) -> (token ids with the images expanded, processor outputs for the images)
+        self.encode_images = encode_images
+        self.image_inputs: list[dict[str, Any]] = []  # one entry per encode_images call, in prompt order
 
     def build_initial_tokens(
         self,
@@ -165,6 +182,9 @@ class ContinuousTokenBuilder:
         tools: list[dict[str, Any]] | None = None,
     ) -> list[int]:
         """Render prefix and prefix + appended, and return the token suffix the appended messages add."""
+        if message_images(prefix_messages):
+            # The processor would encode the prefix's images too and the diff would cut through them.
+            raise ValueError("Continuous Token renders images only in appended messages, after an image-free prefix")
         prefix_token_ids = self._render_tokens(prefix_messages, add_generation_prompt=False, tools=tools)
         full_token_ids = self._render_tokens(
             prefix_messages + appended_messages,
@@ -207,6 +227,20 @@ class ContinuousTokenBuilder:
         add_generation_prompt: bool,
         tools: list[dict[str, Any]] | None = None,
     ) -> list[int]:
+        images = message_images(messages)
+        if images:
+            if self.encode_images is None:
+                raise ValueError("messages contain images, but this Continuous Token builder has no image encoder")
+            text = render_chat_text(
+                self.tokenizer,
+                messages,
+                add_generation_prompt=add_generation_prompt,
+                tools=tools,
+                **self.chat_template_kwargs,
+            )
+            token_ids, image_inputs = self.encode_images(text, images)
+            self.image_inputs.append(image_inputs)
+            return token_ids
         return apply_chat_template(
             self.tokenizer,
             messages,
@@ -318,7 +352,7 @@ class QwenContinuousTokenBuilder(ContinuousTokenBuilder):
 
     Note: when a Qwen3/Qwen3.5 context assistant message has no thinking, grouped CT encoding
     renders that assistant in a synthetic context and may produce an empty ``<think></think>``
-    block. This only affects assistant messages the proxy has to render itself, i.e. ones it did
+    block. This only affects assistant messages CT has to render itself, i.e. ones the model did
     not generate; generated turns keep their original tokens.
     """
 

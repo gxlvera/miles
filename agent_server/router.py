@@ -1,4 +1,4 @@
-"""Proxy Router: keeps the list of registered replicas and places each new session on one of them.
+"""The agent server's Router: keeps the list of registered replicas and places each new session on one of them.
 
 It is only on the session-creation path. The handle it returns names the owning replica, and
 the agent's turns, collect and delete all go to that replica directly; the Router never sees
@@ -16,7 +16,7 @@ from dataclasses import asdict
 import httpx
 import setproctitle
 import uvicorn
-from agent_proxy.protocol import SessionHandle
+from agent_server.protocol import SessionHandle
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.responses import Response
@@ -59,7 +59,7 @@ def create_app(client: httpx.AsyncClient) -> FastAPI:
     @app.post("/sessions")
     async def create_session(request: Request):
         if not agent_urls:
-            return JSONResponse(status_code=503, content={"error": "no proxy replica has registered yet"})
+            return JSONResponse(status_code=503, content={"error": "no agent server replica has registered yet"})
         replica_url = random.choice(list(agent_urls))
         # The body (sampling defaults, evaluation) is the replica's business; pass it through untouched.
         response = await client.post(
@@ -79,11 +79,11 @@ def create_app(client: httpx.AsyncClient) -> FastAPI:
 
 
 def run_router(config: RouterConfig) -> None:
-    configure_logger_raw("agent_proxy_router")
+    configure_logger_raw("agent_server_router")
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    setproctitle.setproctitle("miles-agent-proxy-router")
+    setproctitle.setproctitle("miles-agent-server-router")
     client = httpx.AsyncClient(timeout=httpx.Timeout(config.timeout))
-    logger.info("Proxy router on %s:%s", config.host, config.port)
+    logger.info("Agent server router on %s:%s", config.host, config.port)
     uvicorn.run(create_app(client), host=config.host, port=config.port, log_level="info", access_log=False)
 
 

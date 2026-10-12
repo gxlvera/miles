@@ -35,18 +35,18 @@ def spec_rollout_executor(args) -> ServeWorkerSpec:
                 else None
             ),
             inference_controller_provider=compute_inference_controller_provider(args, capability=ctx.capability),
-            proxy_router_provider=compute_proxy_router_provider(args, capability=ctx.capability),
+            agent_server_router_provider=compute_agent_server_router_provider(args, capability=ctx.capability),
         ),
     )
 
 
-def compute_proxy_router_provider(args, *, capability: BackendCapability) -> BaseWorkerProvider | None:
-    if not getattr(args, "use_proxy_server", False):
+def compute_agent_server_router_provider(args, *, capability: BackendCapability) -> BaseWorkerProvider | None:
+    if not getattr(args, "use_agent_server", False):
         return None
-    # agent_proxy/ is a top-level folder outside the miles package; import it only when it is used.
-    from agent_proxy.miles_adapter import proxy_router_provider
+    # agent_server/ is a top-level folder outside the miles package; import it only when it is used.
+    from agent_server.miles_adapter import agent_server_router_provider
 
-    return proxy_router_provider(capability)
+    return agent_server_router_provider(capability)
 
 
 def create_rollout_executor_handle(*, capability: BackendCapability) -> BaseWorkerHandle:

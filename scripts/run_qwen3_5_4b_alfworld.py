@@ -1,4 +1,4 @@
-"""Train Qwen3.5-4B on ALFWorld through Miles Session Server v2, or through agent_proxy/.
+"""Train Qwen3.5-4B on ALFWorld through Miles Session Server v2, or through agent_server/.
 
 Requires a Miles GPU environment, converted Qwen3.5-4B checkpoint, and indexed
 ALFWorld games. See examples/experimental/alfworld/README.md for preparation.
@@ -11,7 +11,7 @@ Args:
   --num-gpus-per-node / --tensor-model-parallel-size: Single-node GPU layout.
   --max-steps / --max-response-len: Per-episode turns and per-call output tokens.
   --per-turn-samples: Split each episode into per-turn training samples (default: off).
-  --use-proxy-server: Serve sessions with agent_proxy/ (default: off).
+  --use-agent-server: Serve sessions with agent_server/ (default: off).
   --extra-args: Additional Miles train.py flags.
 
 Example:
@@ -41,7 +41,7 @@ class ScriptArgs(U.ExecuteTrainConfig):
     max_response_len: int = 4096
     max_tokens_per_gpu: int = 24576
     per_turn_samples: bool = False
-    use_proxy_server: bool = False
+    use_agent_server: bool = False
     extra_args: str = ""
 
     def __post_init__(self):
@@ -60,8 +60,8 @@ class ScriptArgs(U.ExecuteTrainConfig):
             < 1
         ):
             raise ValueError("GPU, batch, turn and token counts must be positive")
-        if self.per_turn_samples and self.use_proxy_server:
-            raise ValueError("--per-turn-samples splits Session Server v2 output; it does not apply to agent_proxy")
+        if self.per_turn_samples and self.use_agent_server:
+            raise ValueError("--per-turn-samples splits Session Server v2 output; it does not apply to agent_server")
         if self.n_samples_per_prompt < 2:
             raise ValueError("GRPO needs at least two samples per prompt")
         if self.num_gpus_per_node % self.tensor_model_parallel_size:
@@ -79,12 +79,13 @@ class ScriptArgs(U.ExecuteTrainConfig):
 
 
 def execute(args: ScriptArgs):
-    if args.use_proxy_server:
-        generate_path = "agent_proxy.miles_adapter.generate"
-        # agent_proxy renders prompts from the checkpoint's own chat template with continuous token, so no
-        # --tito-model. SGLang's reasoning/tool-call parsers are named explicitly (the qwen35 TITO values).
+    if args.use_agent_server:
+        generate_path = "agent_server.miles_adapter.generate"
+        # SGLang (with agent_server/sglang_patch) renders prompts from the checkpoint's own chat template with
+        # continuous token, so no --tito-model, and MilesRouter forwards the fields that needs. SGLang's
+        # reasoning/tool-call parsers are named explicitly (the qwen35 TITO values).
         session_args = (
-            "--use-proxy-server --proxy-server-workers 1 "
+            "--use-agent-server --agent-server-workers 1 --use-miles-router "
             "--sglang-reasoning-parser qwen3 --sglang-tool-call-parser qwen3_coder "
         )
     else:

@@ -60,7 +60,7 @@ class RolloutExecutor:
         router_providers: Sequence[BaseWorkerProvider],
         session_server_provider: BaseWorkerProvider | None,
         inference_controller_provider: BaseWorkerProvider,
-        proxy_router_provider: BaseWorkerProvider | None = None,
+        agent_server_router_provider: BaseWorkerProvider | None = None,
     ):
         self._init_once = InitOnce(type(self).__name__)
 
@@ -74,7 +74,7 @@ class RolloutExecutor:
         self._router_providers = router_providers
         self._session_server_provider = session_server_provider
         self._inference_controller_provider = inference_controller_provider
-        self._proxy_router_provider = proxy_router_provider
+        self._agent_server_router_provider = agent_server_router_provider
 
     @init_once
     async def init(self) -> None:
@@ -82,11 +82,11 @@ class RolloutExecutor:
         if not args.debug_train_only or args.eval_num_gpus > 0:
             await resolve_router_addrs(args, router_providers=self._router_providers)
             await wait_session_server_ready(args, provider=self._session_server_provider)
-            if self._proxy_router_provider is not None:
-                # agent_proxy/ is a top-level folder outside the miles package; import it only when it is used.
-                from agent_proxy.miles_adapter import wait_proxy_server_ready
+            if self._agent_server_router_provider is not None:
+                # agent_server/ is a top-level folder outside the miles package; import it only when it is used.
+                from agent_server.miles_adapter import wait_agent_server_ready
 
-                await wait_proxy_server_ready(args, provider=self._proxy_router_provider)
+                await wait_agent_server_ready(args, provider=self._agent_server_router_provider)
 
         # TODO make args immutable
         init_tracking(args, primary=False, router_addr=f"http://{args.sglang_router_ip}:{args.sglang_router_port}")

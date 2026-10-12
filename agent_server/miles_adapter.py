@@ -1,9 +1,9 @@
 """Miles integration: launch the Router and the replicas, wait for them, and run one episode per sample.
 
-Miles reaches this module only when ``--use-proxy-server`` is set: from the process specs
+Miles reaches this module only when ``--use-agent-server`` is set: from the process specs
 (``miles/ray/specs/entrypoint.py``) and from the two rollout readiness points next to
 ``wait_session_server_ready``. Rollout uses
-``--custom-generate-function-path agent_proxy.miles_adapter.generate``.
+``--custom-generate-function-path agent_server.miles_adapter.generate``.
 """
 
 import asyncio
@@ -18,8 +18,8 @@ from typing import Any
 
 import httpx
 
-from agent_proxy.router import RouterConfig
-from agent_proxy.server import ReplicaConfig
+from agent_server.router import RouterConfig
+from agent_server.server import ReplicaConfig
 from miles.ray.specs.inference import compute_router_pool_id
 from miles.rollout.agentic.agent_function import call_agent_function
 from miles.rollout.base_types import GenerateFnInput, GenerateFnOutput
@@ -39,15 +39,15 @@ from miles.utils.workers.worker_spec import CommandWorkerSpec, LaunchCommandCont
 
 logger = logging.getLogger(__name__)
 
-PROXY_ROUTER_POOL_ID = "agent-proxy-router"
-PROXY_REPLICA_POOL_ID = "agent-proxy-replica"
+AGENT_SERVER_ROUTER_POOL_ID = "agent-server-router"
+AGENT_SERVER_REPLICA_POOL_ID = "agent-server-replica"
 
 _READY_TIMEOUT_SECONDS = 300.0
 # Optional JSON object {"<replica port>": "<url>"}: the URL agents outside the cluster use for the
-# replica on that port, e.g. a tunnel opened before the run starts. Needs --proxy-server-port.
-PUBLIC_URLS_ENV = "AGENT_PROXY_PUBLIC_URLS"
-# agent_proxy/ sits next to the miles package, not inside it, so the spawned processes need the
-# repository root on their path for ``python -m agent_proxy.*``.
+# replica on that port, e.g. a tunnel opened before the run starts. Needs --agent-server-port.
+PUBLIC_URLS_ENV = "AGENT_SERVER_PUBLIC_URLS"
+# agent_server/ sits next to the miles package, not inside it, so the spawned processes need the
+# repository root on their path for ``python -m agent_server.*``.
 _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
 
 
@@ -56,43 +56,45 @@ _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
 # ---------------------------------------------------------------------------
 
 
-def specs_proxy_server(args) -> list[CommandWorkerSpec]:
-    """One Router plus ``--proxy-server-workers`` replicas, started and stopped by Miles' worker manager."""
+def specs_agent_server(args) -> list[CommandWorkerSpec]:
+    """One Router plus ``--agent-server-workers`` replicas, started and stopped by Miles' worker manager."""
     return [_spec_router(args), _spec_replicas(args)]
 
 
-def proxy_router_provider(capability: BackendCapability) -> BaseWorkerProvider:
-    return capability.static_worker_provider(pool_id=PROXY_ROUTER_POOL_ID)
+def agent_server_router_provider(capability: BackendCapability) -> BaseWorkerProvider:
+    return capability.static_worker_provider(pool_id=AGENT_SERVER_ROUTER_POOL_ID)
 
 
-async def wait_proxy_server_ready(args, *, provider: BaseWorkerProvider) -> None:
+async def wait_agent_server_ready(args, *, provider: BaseWorkerProvider) -> None:
     """Block until the Router is up and every replica has registered, then publish the Router URL on args."""
-    router = (await provider.get_addrs(worker_name=compute_worker_name(pool_id=PROXY_ROUTER_POOL_ID)))["primary"]
+    router = (await provider.get_addrs(worker_name=compute_worker_name(pool_id=AGENT_SERVER_ROUTER_POOL_ID)))[
+        "primary"
+    ]
     await wait_tcp_ready_async(router.host, router.port, timeout=_READY_TIMEOUT_SECONDS)
     deadline = time.monotonic() + _READY_TIMEOUT_SECONDS
     async with httpx.AsyncClient() as client:
         while True:
             replicas = (await client.get(f"{router.addr}/replicas")).json()["replicas"]
-            if len(replicas) >= args.proxy_server_workers:
+            if len(replicas) >= args.agent_server_workers:
                 break
             if time.monotonic() > deadline:
                 raise TimeoutError(
-                    f"only {len(replicas)} of {args.proxy_server_workers} proxy replicas registered with {router.addr}"
+                    f"only {len(replicas)} of {args.agent_server_workers} agent server replicas registered with {router.addr}"
                 )
             await asyncio.sleep(1)
     # generate() reads this to create sessions.
-    args.proxy_router_url = router.addr
-    logger.info("Proxy router ready at %s with replicas %s", router.addr, replicas)
+    args.agent_server_router_url = router.addr
+    logger.info("Agent server router ready at %s with replicas %s", router.addr, replicas)
 
 
 def _spec_router(args) -> CommandWorkerSpec:
     def _launch_command(ctx: LaunchCommandContext) -> str:
         primary = ctx.self_addrs["primary"]
         config = RouterConfig(host=primary.host, port=primary.port, timeout=args.miles_router_timeout)
-        return shlex.join([*python_argv_prefix(), "-m", "agent_proxy.router", *config_to_argv(config)])
+        return shlex.join([*python_argv_prefix(), "-m", "agent_server.router", *config_to_argv(config)])
 
     return CommandWorkerSpec(
-        name=PROXY_ROUTER_POOL_ID,
+        name=AGENT_SERVER_ROUTER_POOL_ID,
         port_infos=[PortInfo(name="primary", static_port=8000, allow_dynamic=True)],
         env_var=_env_var,
         scheduling=_cpu_scheduling(args, num_cells=1),
@@ -104,12 +106,12 @@ def _spec_replicas(args) -> CommandWorkerSpec:
     def _launch_command(ctx: LaunchCommandContext) -> str:
         primary = ctx.self_addrs["primary"]
         (inference_router,) = ctx.pool_addrs[compute_router_pool_id(0)]
-        (proxy_router,) = ctx.pool_addrs[PROXY_ROUTER_POOL_ID]
+        (router,) = ctx.pool_addrs[AGENT_SERVER_ROUTER_POOL_ID]
         public_urls = json.loads(os.environ.get(PUBLIC_URLS_ENV) or "{}")
         config = ReplicaConfig(
             host=primary.host,
             port=primary.port,
-            router_url=proxy_router["primary"].addr,
+            router_url=router["primary"].addr,
             public_url=public_urls.get(str(primary.port)),
             backend_url=inference_router["primary"].addr,
             hf_checkpoint=args.hf_checkpoint,
@@ -122,17 +124,17 @@ def _spec_replicas(args) -> CommandWorkerSpec:
             session_sample_picker_path=args.session_sample_picker_path,
             session_sample_postprocessor_path=args.session_sample_postprocessor_path,
         )
-        return shlex.join([*python_argv_prefix(), "-m", "agent_proxy.server", *config_to_argv(config)])
+        return shlex.join([*python_argv_prefix(), "-m", "agent_server.server", *config_to_argv(config)])
 
-    if args.proxy_server_port is None:
+    if args.agent_server_port is None:
         port_info = PortInfo(name="primary", static_port=8000, allow_dynamic=True)
     else:
-        port_info = PortInfo(name="primary", static_port=args.proxy_server_port, offset_by_cell=True)
+        port_info = PortInfo(name="primary", static_port=args.agent_server_port, offset_by_cell=True)
     return CommandWorkerSpec(
-        name=PROXY_REPLICA_POOL_ID,
+        name=AGENT_SERVER_REPLICA_POOL_ID,
         port_infos=[port_info],
         env_var=_env_var,
-        scheduling=_cpu_scheduling(args, num_cells=args.proxy_server_workers),
+        scheduling=_cpu_scheduling(args, num_cells=args.agent_server_workers),
         launch_command=_launch_command,
     )
 
@@ -157,21 +159,21 @@ def _env_var(_ctx) -> dict[str, str]:
 
 
 async def generate(input: GenerateFnInput) -> GenerateFnOutput:
-    """Run one agent episode on a fresh Proxy session and return its training samples.
+    """Run one agent episode on a fresh agent server session and return its training samples.
 
-    The session is created through the Proxy Router and the agent talks to the owning replica.
+    The session is created through the agent server's Router and the agent talks to the owning replica.
     ``OpenAIEndpointTracer`` then collects the samples from that replica, deletes the session and
     decodes the reply with Miles' samples codec.
     """
     args = input.args
     assert not args.partial_rollout, "Partial rollout is not supported"
     handle = await _create_session(
-        args.proxy_router_url, evaluation=input.evaluation, sampling_params=input.sampling_params
+        args.agent_server_router_url, evaluation=input.evaluation, sampling_params=input.sampling_params
     )
     tracer = OpenAIEndpointTracer(
         router_url=handle["replica_url"], session_id=handle["session_id"], samples_wire_fields=COMPUTED_FIELDS_V2
     )
-    log_prefix = f"[proxy session={tracer.session_id}]"
+    log_prefix = f"[agent server session={tracer.session_id}]"
 
     max_seq_len = getattr(args, "max_seq_len", None)
     metadata = {**input.sample.metadata, "session_server_id": tracer.session_server_id}

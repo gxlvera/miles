@@ -1,9 +1,9 @@
-"""GRPO for Qwen3.5-4B with Claude Code on SWE-Gym-Lite, served through agent_proxy.
+"""GRPO for Qwen3.5-4B with Claude Code on SWE-Gym-Lite, served through agent_server.
 
 One node, disaggregated: ``--train-gpus`` GPUs train (TP only; Qwen3.5's linear-attention layers
 are not run with context parallelism here), ``--rollout-gpus`` GPUs serve SGLang. Each trajectory is
-a Harbor ``claude-code`` trial in its own Modal sandbox; Claude Code reaches the proxy replica
-through the public URL in ``AGENT_PROXY_PUBLIC_URLS`` (set by modal_app.py from Modal tunnels).
+a Harbor ``claude-code`` trial in its own Modal sandbox; Claude Code reaches the agent server replica
+through the public URL in ``AGENT_SERVER_PUBLIC_URLS`` (set by modal_app.py from Modal tunnels).
 
 Needs: the Miles image with Harbor installed, the volume layout under ``--vol``
 (models/Qwen3.5-4B, harbor_tasks/, data/), Modal credentials in the environment for the
@@ -17,7 +17,7 @@ Args:
   --debug-rollout-only: run rollouts without training (smoke test).
 
 Example (inside the container):
-  python agent_proxy/experiments/swe_claude_code/run_swe_claude_code.py --num-rollout 40
+  python agent_server/experiments/swe_claude_code/run_swe_claude_code.py --num-rollout 40
 """
 
 import os
@@ -37,7 +37,7 @@ from launch_common import agentic_pythonpath_dirs, harbor_env_vars  # noqa: E402
 
 @dataclass
 class ScriptArgs(U.ExecuteTrainConfig):
-    run_name: str = "proxy-claude-code-swegym-qwen3.5-4b"
+    run_name: str = "agent-server-claude-code-swegym-qwen3.5-4b"
     vol: str = "/vol"
     model_name: str = "Qwen3.5-4B"
     megatron_path: str = "/root/Megatron-LM"
@@ -57,8 +57,8 @@ class ScriptArgs(U.ExecuteTrainConfig):
     max_output_tokens: int = 8192
     max_turns: int = 50
     agent_timeout: int = 3600
-    proxy_server_workers: int = 4
-    proxy_server_port: int = 30000
+    agent_server_workers: int = 4
+    agent_server_port: int = 30000
     debug_rollout_only: bool = False
     wandb_project: str = "humans&take-home"
     wandb_team: str = "xiaoleg-carnegie-mellon-university"
@@ -106,6 +106,8 @@ def _harbor_env(args: ScriptArgs) -> dict[str, str]:
         HARBOR_MAX_SEQ_LEN=str(args.max_seq_len),
         AGENT_TRIAL_TIMEOUT=str(args.agent_timeout + 1800),
         HARBOR_TIMEOUT_MULTIPLIER="1.0",
+        # No subagents: each would be a separate conversation with its own system prompt and tools.
+        HARBOR_CLAUDE_CODE_DISALLOWED_TOOLS="WebSearch,WebFetch,Agent,Task",
     )
     return harbor_env_vars(args)
 
@@ -138,15 +140,15 @@ def execute(args: ScriptArgs) -> None:
             f"--eval-interval {args.eval_interval} --n-samples-per-eval-prompt 1 "
         )
     agent_args = (
-        "--custom-generate-function-path agent_proxy.miles_adapter.generate "
+        "--custom-generate-function-path agent_server.miles_adapter.generate "
         "--custom-agent-function-path harbor_agent_function.run "
         "--custom-agent-function-mode subproc "
         "--custom-rm-path generate.reward_func "
         "--rollout-function-path generate.RolloutFn "
         "--dynamic-sampling-filter-path miles.rollout.filter_hub.dynamic_sampling_filters.check_no_aborted "
-        "--use-proxy-server "
-        f"--proxy-server-workers {args.proxy_server_workers} "
-        f"--proxy-server-port {args.proxy_server_port} "
+        "--use-agent-server --use-miles-router "
+        f"--agent-server-workers {args.agent_server_workers} "
+        f"--agent-server-port {args.agent_server_port} "
     )
     # TP only and full recompute. A trajectory longer than --max-tokens-per-gpu gets a micro-batch of its
     # own, so the peak is one --max-seq-len sample; TP4 keeps its vocab-parallel logits small.
@@ -189,7 +191,7 @@ def execute(args: ScriptArgs) -> None:
 
     extra_env_vars = {
         "PYTHONPATH": ":".join([args.megatron_path, *agentic_pythonpath_dirs(), str(U.repo_base_dir)]),
-        "AGENT_PROXY_PUBLIC_URLS": os.environ.get("AGENT_PROXY_PUBLIC_URLS", "{}"),
+        "AGENT_SERVER_PUBLIC_URLS": os.environ.get("AGENT_SERVER_PUBLIC_URLS", "{}"),
         # Harbor passes this to Claude Code; the Anthropic route rejects requests with `thinking`.
         "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
         **_harbor_env(args),

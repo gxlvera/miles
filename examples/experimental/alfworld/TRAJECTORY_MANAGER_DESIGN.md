@@ -1,6 +1,6 @@
 # Trajectory Manager 设计
 
-> 历史方案，已由 [Proxy Server MVP](../../../agent_proxy/DESIGN.md) 替代。新方案重写 Proxy，并使用独立搬入的 continuous token，不再复用 Miles TITO。
+> 历史方案，已由 [Agent Server](../../../agent_server/DESIGN.md) 替代。新方案重写 agent server，并使用独立搬入的 continuous token，不再复用 Miles TITO。
 
 **内部用增量节点保存轨迹，导出时生成 Miles 原生 `Sample`。** 每个 Session 持有一个 Manager；复用 Miles 的 TITO、message matcher、sample picker、reward postprocessor 和 wire codec。
 

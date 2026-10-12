@@ -11,7 +11,7 @@ them the route answers 501.
 import json
 from typing import Any
 
-from agent_proxy.protocol import ProxyError
+from agent_server.protocol import AgentServerError
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sglang.srt.entrypoints.openai.protocol import ChatCompletionResponse
@@ -54,6 +54,11 @@ def add_anthropic_route(app: FastAPI, replica: Any) -> None:
             )
         try:
             anthropic_request = _parse_anthropic_request(await request.body())
+            # Claude Code asks for extended thinking (and an effort level) on its own. Whether the policy
+            # thinks is decided by its chat template, so these client settings are dropped instead of
+            # failing every request.
+            anthropic_request = anthropic_request.model_copy(update={"thinking": None, "output_config": None})
+            anthropic_request = _clear_tool_result_errors(anthropic_request)
             _validate_anthropic_features(anthropic_request)
             conversion_request, reasoning_history = _strip_anthropic_reasoning_history(anthropic_request)
             openai_request = convert_to_chat_completion_request(
@@ -69,7 +74,7 @@ def add_anthropic_route(app: FastAPI, replica: Any) -> None:
 
         try:
             reply = await replica.chat(session_id, openai_body)
-        except ProxyError as exc:
+        except AgentServerError as exc:
             return _anthropic_error_response(exc.status_code, _error_body(exc.message))
 
         openai_response = ChatCompletionResponse.model_validate(
@@ -90,3 +95,24 @@ def add_anthropic_route(app: FastAPI, replica: Any) -> None:
 
 def _error_body(message: str) -> bytes:
     return json.dumps({"error": message}).encode()
+
+
+def _clear_tool_result_errors(anthropic_request):
+    """Drop ``is_error`` from tool results.
+
+    Claude Code marks every failed tool call this way (a failing shell command, a bad edit), and the
+    reused validation rejects the flag. The error text is already in the tool result content, which
+    is all the policy's chat template renders.
+    """
+    messages = []
+    for message in anthropic_request.messages:
+        if not isinstance(message.content, str) and any(
+            block.type == "tool_result" and block.is_error for block in message.content
+        ):
+            content = [
+                block.model_copy(update={"is_error": None}) if block.type == "tool_result" else block
+                for block in message.content
+            ]
+            message = message.model_copy(update={"content": content})
+        messages.append(message)
+    return anthropic_request.model_copy(update={"messages": messages})

@@ -13,41 +13,53 @@ record that turn's id.
 import hashlib
 import itertools
 import json
+import re
 import time
 from dataclasses import replace
 from typing import Any
 
 import numpy as np
 
-from agent_proxy.continuous_token import ContinuousTokenBuilder
-from agent_proxy.protocol import Generation, PreparedTurn, TurnNode
+from agent_server.protocol import Generation, PreparedTurn, TurnNode
+from agent_server.sglang_patch.continuous_token.media import message_images
 from miles.utils.types import Sample, WeightVersionsPerCall
 
 _STATUS_BY_FINISH_REASON = {"length": Sample.Status.TRUNCATED, "abort": Sample.Status.ABORTED}
+
+# Parts of a system prompt that an agent rewrites on every request. Claude Code appends its running
+# token budget (`<total_tokens>N tokens left</total_tokens>`), so without this no request would ever
+# match the previous turn. A matched turn keeps the system tokens of the turn that started the branch.
+_VOLATILE_SYSTEM_TEXT = re.compile(r"<total_tokens>\d+ tokens left</total_tokens>")
 
 
 def message_fingerprint(message: dict[str, Any]) -> bytes:
     """Digest of what a message means to the model; equal digests are treated as the same history step.
 
     The projection keeps role, content, reasoning_content and tool_calls, with empty values
-    collapsed to None. Two fields are relaxed because they change on a client round trip without
+    collapsed to None; an image block counts by its full URL or data URI, so a different image is a
+    different message. Some fields are relaxed because they change on a client round trip without
     changing what the model saw:
-    - a tool call keeps only its function name and arguments, with JSON arguments compared as
-      parsed objects (``id``/``index``/``type`` and argument whitespace or key order differ after
-      e.g. an Anthropic <-> OpenAI conversion);
-    - content made only of text blocks counts as the joined string.
+    - a tool call counts only by its function name. Clients rewrite arguments on replay: Claude
+      Code fills in defaults (``"replace_all": false`` on ``Edit``) and drops parameters the model
+      made up, and an Anthropic <-> OpenAI conversion changes ids and JSON formatting. The reasoning
+      and content of a reply still tell two generations apart;
+    - content made only of text blocks counts as the joined string;
+    - surrounding whitespace in content and reasoning is ignored: a tool-call reply often has
+      content "\n\n", and Anthropic messages cannot carry a whitespace-only text block, so it
+      comes back empty;
+    - in system messages, text an agent rewrites on every request (``_VOLATILE_SYSTEM_TEXT``).
     The stored tokens of a matched turn are reused as they are, so ignoring these fields cannot
     change any prompt token.
     """
-    tool_calls = [
-        {"name": (call.get("function") or {}).get("name"), "arguments": _canonical_arguments(call)}
-        for call in message.get("tool_calls") or []
-    ]
+    tool_calls = [(call.get("function") or {}).get("name") for call in message.get("tool_calls") or []]
+    content = _canonical_content(message.get("content"))
+    if message.get("role") == "system" and isinstance(content, str):
+        content = _canonical_content(_VOLATILE_SYSTEM_TEXT.sub("", content))
     return _digest(
         {
             "role": message.get("role"),
-            "content": _canonical_content(message.get("content")),
-            "reasoning_content": message.get("reasoning_content") or None,
+            "content": content,
+            "reasoning_content": _canonical_content(message.get("reasoning_content")),
             "tool_calls": tool_calls or None,
         }
     )
@@ -79,56 +91,32 @@ class TrajectoryManager:
         self.nodes: list[TurnNode] = []
         self._tries: dict[bytes, _TrieNode] = {}
 
-    def prepare(
-        self,
-        messages: list[dict[str, Any]],
-        *,
-        tools: list[dict[str, Any]] | None,
-        builder: ContinuousTokenBuilder,
-        context_key: bytes,
-    ) -> PreparedTurn:
-        """Pick the parent turn and render the prompt with continuous token."""
+    def prepare(self, messages: list[dict[str, Any]], *, context_key: bytes) -> PreparedTurn:
+        """Pick the parent turn. SGLang renders the messages after its path onto its tokens."""
         fingerprints = [message_fingerprint(message) for message in messages]
         parent_id, depth = self._find_parent(context_key, fingerprints)
-
-        if parent_id is None:
-            input_ids = builder.build_initial_tokens(messages, tools=tools)
-            return PreparedTurn(
-                parent_id=None,
-                prefix_len=0,
-                input_ids=input_ids,
-                new_messages=list(messages),
-                context_key=context_key,
-                fingerprints=fingerprints,
-                reusable_r3_rows=0,
-            )
-
-        parent_tokens = self.tokens(parent_id)
-        # CT checks that ``updated`` extends ``previous``. The request's own first ``depth`` messages
-        # matched the parent's path, so pass those instead of reassembling the stored messages.
-        merge = builder.merge_context_tokens(messages[:depth], messages, parent_tokens, tools=tools)
-        prefix_len = len(parent_tokens) - merge.removed_prefix_token_count
-        # Delta storage is only correct if CT kept the parent's tokens as they were.
-        if merge.token_ids[:prefix_len] != parent_tokens[:prefix_len]:
-            raise ValueError("continuous token changed tokens before its declared merge point")
+        parent_tokens = self.tokens(parent_id) if parent_id is not None else []
         return PreparedTurn(
             parent_id=parent_id,
-            prefix_len=prefix_len,
-            input_ids=merge.token_ids,
+            parent_tokens=parent_tokens,
+            prefix_message_count=depth,
             new_messages=messages[depth:],
             context_key=context_key,
             fingerprints=fingerprints,
-            # Row r depends on tokens [0, r], so rows stay valid up to the first changed token.
-            reusable_r3_rows=min(prefix_len, len(parent_tokens) - 1),
+            # Row r depends on tokens [0, r]; SGLang lowers this if it replaces parent tokens.
+            reusable_r3_rows=max(len(parent_tokens) - 1, 0),
         )
 
     def commit(self, prepared: PreparedTurn, generation: Generation) -> TurnNode:
-        prompt_len = len(prepared.input_ids)
+        # The prompt SGLang ran, with every image expanded; children of this turn extend it.
+        edit = generation.prompt_edit
+        prefix_len = len(prepared.parent_tokens) - edit.removed_prefix_token_count
+        prompt_len = prefix_len + len(edit.input_delta)
         node = TurnNode(
             node_id=len(self.nodes),
             parent_id=prepared.parent_id,
-            prefix_len=prepared.prefix_len,
-            input_delta=prepared.input_ids[prepared.prefix_len :],
+            prefix_len=prefix_len,
+            input_delta=edit.input_delta,
             output_tokens=generation.output_tokens,
             output_logprobs=generation.output_logprobs,
             delta_messages=[*prepared.new_messages, generation.message],
@@ -139,6 +127,7 @@ class TrajectoryManager:
             response_id=generation.response_id,
             committed_at=time.time(),
             r3=generation.r3,
+            images=message_images(prepared.new_messages),
         )
         self.nodes.append(node)
         # A generation cut by max_tokens has no closing <|im_end|>; continuing after it would train on a
@@ -283,6 +272,7 @@ def _assemble_sample(path: list[TurnNode], tokenizer: Any) -> Sample:
         weight_versions.append(_clip_spans(node.weight_versions, end=node.end))
 
     response_start = path[0].prompt_len
+    images = [image for node in path for image in node.images]
     return Sample(
         tokens=tokens,
         response=tokenizer.decode(tokens[response_start:]),
@@ -292,6 +282,8 @@ def _assemble_sample(path: list[TurnNode], tokenizer: Any) -> Sample:
         weight_versions=weight_versions,
         rollout_routed_experts=_routed_experts(path, num_rows=len(tokens) - 1),
         status=_STATUS_BY_FINISH_REASON.get(path[-1].finish_reason, Sample.Status.COMPLETED),
+        # References only; the trainer loads and processes the images itself.
+        multimodal_inputs={"images": images} if images else None,
     )
 
 
@@ -299,7 +291,7 @@ def _routed_experts(path: list[TurnNode], *, num_rows: int) -> np.ndarray | None
     """Rebuild the routing-replay rows of a path from the per-turn chunks.
 
     Walks up from the leaf and takes from each chunk only the rows no descendant replaced, then
-    concatenates once. A gap means the backend skipped rows the proxy asked it to keep, and the
+    concatenates once. A gap means the backend skipped rows the agent server asked it to keep, and the
     sample cannot be replayed, so it is an error rather than zero padding.
     """
     if path[-1].r3 is None:
@@ -333,17 +325,9 @@ def _clip_spans(call: WeightVersionsPerCall, *, end: int) -> WeightVersionsPerCa
 def _canonical_content(content: Any) -> Any:
     if isinstance(content, list) and all(isinstance(block, dict) and block.get("type") == "text" for block in content):
         content = "".join(block.get("text", "") for block in content)
+    if isinstance(content, str):
+        content = content.strip()
     return content or None
-
-
-def _canonical_arguments(tool_call: dict[str, Any]) -> Any:
-    arguments = (tool_call.get("function") or {}).get("arguments")
-    if isinstance(arguments, str):
-        try:
-            return json.loads(arguments)
-        except json.JSONDecodeError:
-            return arguments
-    return arguments
 
 
 def _digest(value: Any) -> bytes:

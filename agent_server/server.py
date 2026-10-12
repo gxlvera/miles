@@ -1,8 +1,8 @@
-"""Proxy replica: one process that owns a set of sessions.
+"""Agent server replica: one process that owns a set of sessions.
 
-A chat request goes prepare (pick the parent turn, render the prompt with continuous token)
--> generate on the inference backend (no session state is touched while waiting) -> commit
-(store the new turn). Collect exports one Miles Sample per leaf, runs the configured picker and
+A chat request goes prepare (pick the parent turn) -> generate on the inference backend, which
+renders the new messages onto the parent's tokens with continuous token (no session state is
+touched while waiting) -> commit (store the new turn). Collect exports one Miles Sample per leaf, runs the configured picker and
 postprocessor hooks, and encodes the result with Miles' samples codec.
 
     POST   /sessions                            create (called by the Router)
@@ -23,16 +23,14 @@ from typing import Any
 import httpx
 import setproctitle
 import uvicorn
-from agent_proxy.anthropic import add_anthropic_route
-from agent_proxy.backend import build_request, generate, parse_generation
-from agent_proxy.continuous_token import ContinuousTokenBuilder, create_builder
-from agent_proxy.protocol import ProxyError
-from agent_proxy.trajectory import TrajectoryManager, context_key
+from agent_server.anthropic import add_anthropic_route
+from agent_server.backend import build_request, generate, parse_generation
+from agent_server.protocol import AgentServerError
+from agent_server.trajectory import TrajectoryManager, context_key, message_fingerprint
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.responses import Response
-from transformers import AutoConfig
 
 from miles.rollout.session.core import JSON_MEDIA_TYPE, _client_response_body, _render_json, _response_to_stream_chunk
 from miles.rollout.session.request_args import ClientResponseIntent
@@ -56,6 +54,7 @@ class ReplicaConfig(FrozenStrictBaseModel):
     public_url: str | None = None
     backend_url: str  # the Miles/SGLang inference router
     hf_checkpoint: str
+    # The template SGLang renders with (Miles passes --chat-template-path on as --sglang-chat-template).
     chat_template_path: str | None = None
     apply_chat_template_kwargs: dict[str, Any] | None = None
     timeout: float | None = None
@@ -79,16 +78,17 @@ class Session:
     sampling_defaults: dict[str, Any]
     manager: TrajectoryManager = field(default_factory=TrajectoryManager)
     closed: bool = False
+    warned_unmatched: bool = False
+    warned_branch: bool = False
+    last_context_key: bytes | None = None
 
 
 class Replica:
-    def __init__(self, config: ReplicaConfig, *, tokenizer: Any, model_type: str | None, client: httpx.AsyncClient):
+    def __init__(self, config: ReplicaConfig, *, tokenizer: Any, client: httpx.AsyncClient):
         self.config = config
         self.tokenizer = tokenizer
-        self.model_type = model_type
         self.client = client
         self.sessions: dict[str, Session] = {}
-        self._builders: dict[str, ContinuousTokenBuilder] = {}
         self._sample_picker = load_function(config.session_sample_picker_path, sync_required=True)
         self._sample_postprocessor = load_function(config.session_sample_postprocessor_path, sync_required=True)
 
@@ -104,7 +104,7 @@ class Replica:
     def get_session(self, session_id: str) -> Session:
         session = self.sessions.get(session_id)
         if session is None:
-            raise ProxyError(404, f"session not found: {session_id}")
+            raise AgentServerError(404, f"session not found: {session_id}")
         return session
 
     def delete_session(self, session_id: str) -> None:
@@ -120,28 +120,38 @@ class Replica:
         request = _resolve_request(request, session)
         messages = request.get("messages") or []
         if not messages:
-            raise ProxyError(400, "messages must not be empty")
+            raise AgentServerError(400, "messages must not be empty")
         tools = request.get("tools") or None
         template_kwargs = {
             **(self.config.apply_chat_template_kwargs or {}),
             **(request.get("chat_template_kwargs") or {}),
         }
-        try:
-            prepared = session.manager.prepare(
-                messages,
-                tools=tools,
-                builder=self._builder(template_kwargs),
-                context_key=context_key(tools, template_kwargs),
-            )
-        except ValueError as exc:
-            # Continuous token refused the request, e.g. an appended role or a template it cannot diff.
-            raise ProxyError(400, f"cannot build the prompt incrementally: {exc}") from exc
+        prepared = session.manager.prepare(messages, context_key=context_key(tools, template_kwargs))
 
+        if prepared.parent_id is None and session.manager.nodes and not session.warned_unmatched:
+            _warn_unmatched_history(
+                session, messages, context_changed=session.last_context_key != prepared.context_key
+            )
+        elif prepared.parent_id is not None and not session.warned_branch:
+            latest = session.manager.nodes[-1]
+            if prepared.parent_id != latest.node_id and not latest.truncated:
+                _warn_branch(session, messages, latest_node_id=latest.node_id)
+        session.last_context_key = prepared.context_key
         r3_row_start = self._r3_row_start(session, reusable_rows=prepared.reusable_r3_rows)
-        body = build_request(request, input_ids=prepared.input_ids, r3_row_start=r3_row_start)
+        # SGLang refuses with 400 what continuous token cannot render, e.g. an appended role it does not support.
+        body = build_request(
+            request,
+            parent_tokens=prepared.parent_tokens,
+            prefix_message_count=prepared.prefix_message_count,
+            chat_template_kwargs=template_kwargs,
+            r3_row_start=r3_row_start,
+        )
         reply = await generate(self.client, self.config.backend_url, body, routing_key=session_id)
         generation = parse_generation(
-            reply, prompt_len=len(prepared.input_ids), r3_row_start=r3_row_start, num_layers=self.config.num_layers
+            reply,
+            num_parent_tokens=len(prepared.parent_tokens),
+            routing_replay=r3_row_start is not None,
+            num_layers=self.config.num_layers,
         )
         if not session.closed:
             session.manager.commit(prepared, generation)
@@ -162,7 +172,17 @@ class Replica:
                 # exactly one sample, and assign the agent's reward.
                 samples = self._sample_postprocessor(self._sample_picker(samples, metadata), metadata)
         except (AssertionError, ValueError) as exc:
-            raise ProxyError(422, f"sample export failed: {exc}") from exc
+            raise AgentServerError(422, f"sample export failed: {exc}") from exc
+        tree = metadata["tree"]
+        # One root that keeps growing means the agent's replayed history matched; many roots mean it did not.
+        logger.info(
+            "collect session=%s turns=%d roots=%d leaves=%d samples=%d",
+            session_id,
+            len(tree["nodes"]),
+            sum(node["parent"] is None for node in tree["nodes"]),
+            len(tree["leaves"]),
+            len(samples),
+        )
         if not samples:
             return encode_samples([], metadata, empty_reason="all_truncated", fields=COMPUTED_FIELDS_V2)
         return encode_samples(samples, metadata, fields=COMPUTED_FIELDS_V2)
@@ -182,15 +202,6 @@ class Replica:
                 logger.info("Router %s not reachable yet (%s); retrying", self.config.router_url, exc)
                 await asyncio.sleep(1)
 
-    def _builder(self, template_kwargs: dict[str, Any]) -> ContinuousTokenBuilder:
-        # Builders hold no per-session state, so one per distinct set of template kwargs is enough.
-        key = json.dumps(template_kwargs, sort_keys=True, default=str)
-        if key not in self._builders:
-            self._builders[key] = create_builder(
-                self.tokenizer, model_type=self.model_type, chat_template_kwargs=template_kwargs
-            )
-        return self._builders[key]
-
     def _r3_row_start(self, session: Session, *, reusable_rows: int) -> int | None:
         """First routing-replay row to ask the backend for, or None when replay is off."""
         if session.evaluation or not self.config.use_rollout_routing_replay:
@@ -200,12 +211,102 @@ class Replica:
         return reusable_rows if self.config.use_addition_r3 else 0
 
 
+def _warn_unmatched_history(session: Session, messages: list[dict[str, Any]], *, context_changed: bool) -> None:
+    """Once per session: a request that already has assistant turns matched none of the stored turns.
+
+    Still correct (it becomes a new root rendered from scratch), but prefix reuse is lost. Logs the shape
+    of the first replayed assistant message next to the first stored one, without message text.
+    """
+    replayed = next((message for message in messages if message.get("role") == "assistant"), None)
+    if replayed is None:
+        return
+    session.warned_unmatched = True
+    stored_path = session.manager.nodes[0].delta_messages
+    first_diff = next(
+        (
+            index
+            for index, (new, old) in enumerate(zip(messages, stored_path, strict=False))
+            if message_fingerprint(new) != message_fingerprint(old)
+        ),
+        None,
+    )
+    detail = {}
+    if first_diff is not None:
+        detail = {"replayed": _message_shape(messages[first_diff]), "stored": _message_shape(stored_path[first_diff])}
+        new_text, old_text = (
+            content if isinstance(content := message.get("content"), str) else json.dumps(content, default=str)
+            for message in (messages[first_diff], stored_path[first_diff])
+        )
+        cut = next((i for i, (a, b) in enumerate(zip(new_text, old_text, strict=False)) if a != b), None)
+        cut = min(len(new_text), len(old_text)) if cut is None else cut
+        detail["first_differing_char"] = cut
+        detail["replayed_text"] = new_text[max(0, cut - 80) : cut + 220]
+        detail["stored_text"] = old_text[max(0, cut - 80) : cut + 220]
+    logger.warning(
+        "session %s: request with %d messages matched no stored turn; tools/template changed=%s; "
+        "first differing message index vs the first stored turn=%s %s",
+        session.session_id,
+        len(messages),
+        context_changed,
+        first_diff,
+        detail,
+    )
+
+
+def _warn_branch(session: Session, messages: list[dict[str, Any]], *, latest_node_id: int) -> None:
+    """Once per session: a request continues an older turn instead of the latest one (a new branch)."""
+    session.warned_branch = True
+    latest_path = [message for node in session.manager.path(latest_node_id) for message in node.delta_messages]
+    first_diff = next(
+        (
+            index
+            for index, (new, old) in enumerate(zip(messages, latest_path, strict=False))
+            if message_fingerprint(new) != message_fingerprint(old)
+        ),
+        min(len(messages), len(latest_path)),
+    )
+    detail = {}
+    if first_diff < min(len(messages), len(latest_path)):
+        new, old = messages[first_diff], latest_path[first_diff]
+        detail = {"replayed": _message_shape(new), "stored": _message_shape(old)}
+        for name, message in (("replayed_text", new), ("stored_text", old)):
+            content = message.get("content")
+            detail[name] = (content if isinstance(content, str) else json.dumps(content, default=str))[:400]
+    logger.warning(
+        "session %s: request with %d messages branches off the latest turn (latest path has %d messages); "
+        "first differing index=%d %s",
+        session.session_id,
+        len(messages),
+        len(latest_path),
+        first_diff,
+        detail,
+    )
+
+
+def _message_shape(message: dict[str, Any]) -> dict[str, Any]:
+    calls = message.get("tool_calls") or []
+    return {
+        "keys": sorted(message),
+        "content_len": len(message.get("content") or "") if isinstance(message.get("content"), str) else "list",
+        "reasoning_len": len(message.get("reasoning_content") or ""),
+        "tool_calls": [
+            (
+                (call.get("function") or {}).get("name"),
+                type((call.get("function") or {}).get("arguments")).__name__,
+                len(str((call.get("function") or {}).get("arguments"))),
+            )
+            for call in calls
+        ],
+        "fingerprint": message_fingerprint(message).hex()[:8],
+    }
+
+
 def _resolve_request(request: dict[str, Any], session: Session) -> dict[str, Any]:
-    """Fill the sampling fields the client left out from the session's defaults; refuse fields the proxy owns."""
+    """Fill the sampling fields the client left out from the session's defaults; refuse fields the agent server owns."""
     if request.get("input_ids") is not None:
-        raise ProxyError(400, "input_ids are rendered by the proxy and must not be sent")
+        raise AgentServerError(400, "input_ids are rendered by the agent server and must not be sent")
     if (request.get("n") or 1) != 1:
-        raise ProxyError(400, "only n=1 is supported")
+        raise AgentServerError(400, "only n=1 is supported")
     request = dict(request)
     for key, value in session.sampling_defaults.items():
         # A training session always samples at the run's temperature: the trainer treats rollout logprobs as
@@ -220,7 +321,7 @@ async def _json_body(request: Request) -> dict[str, Any]:
     try:
         return json.loads(body) if body else {}
     except json.JSONDecodeError as exc:
-        raise ProxyError(400, f"invalid JSON body: {exc}") from exc
+        raise AgentServerError(400, f"invalid JSON body: {exc}") from exc
 
 
 def _openai_response(reply: dict[str, Any], *, stream: bool, logprobs: bool) -> Response:
@@ -251,8 +352,8 @@ def create_app(replica: Replica) -> FastAPI:
 
     app = FastAPI(lifespan=lifespan)
 
-    @app.exception_handler(ProxyError)
-    async def proxy_error_handler(_request: Request, exc: ProxyError):
+    @app.exception_handler(AgentServerError)
+    async def agent_server_error_handler(_request: Request, exc: AgentServerError):
         return JSONResponse(status_code=exc.status_code, content={"error": exc.message})
 
     @app.get("/health")
@@ -264,7 +365,7 @@ def create_app(replica: Replica) -> FastAPI:
         try:
             params = CreateSessionRequest.model_validate_json(await request.body() or b"{}")
         except ValidationError as exc:
-            raise ProxyError(400, str(exc)) from exc
+            raise AgentServerError(400, str(exc)) from exc
         return {"session_id": replica.create_session(params)}
 
     @app.delete("/sessions/{session_id}")
@@ -306,18 +407,22 @@ def create_app(replica: Replica) -> FastAPI:
 
 def run_replica(config: ReplicaConfig) -> None:
     # Spawned as a fresh interpreter, so logging and the process title are set up here.
-    configure_logger_raw("agent_proxy_replica")
+    configure_logger_raw("agent_server_replica")
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    setproctitle.setproctitle("miles-agent-proxy-replica")
+    setproctitle.setproctitle("miles-agent-server-replica")
 
+    # Only for decoding exported samples and reading the template's system-message rules; prompts are
+    # rendered by SGLang.
     tokenizer = load_tokenizer(
         config.hf_checkpoint, chat_template_path=config.chat_template_path, trust_remote_code=True
     )
-    # The root config.json model_type selects the continuous token builder.
-    model_type = AutoConfig.from_pretrained(config.hf_checkpoint, trust_remote_code=True).model_type
-    client = httpx.AsyncClient(limits=httpx.Limits(max_connections=1024), timeout=httpx.Timeout(config.timeout))
-    replica = Replica(config, tokenizer=tokenizer, model_type=model_type, client=client)
-    logger.info("Proxy replica on %s, backend %s, model_type=%s", config.url, config.backend_url, model_type)
+    # Idle connections expire before uvicorn's 5 s keep-alive (MilesRouter) closes them on the other side;
+    # reusing one the server is closing fails the request with a ReadError.
+    client = httpx.AsyncClient(
+        limits=httpx.Limits(max_connections=1024, keepalive_expiry=2.0), timeout=httpx.Timeout(config.timeout)
+    )
+    replica = Replica(config, tokenizer=tokenizer, client=client)
+    logger.info("Agent server replica on %s, backend %s", config.url, config.backend_url)
     uvicorn.run(
         create_app(replica),
         # Listen on every interface: a tunnel (public_url) may reach the port through loopback, while the

@@ -1,11 +1,11 @@
-"""The ported Qwen builder against full chat-template renders of the same conversation.
+"""The Qwen builder (which runs inside SGLang) against full chat-template renders of the same conversation.
 
 The conversation only appends tool results after the last user message, where Qwen3.5's
 template is append-only, so the incremental prompt must equal the full render.
 """
 
-from agent_proxy.continuous_token import QwenContinuousTokenBuilder, create_builder
-from agent_proxy.continuous_token.chat_template import apply_chat_template
+from agent_server.sglang_patch.continuous_token import QwenContinuousTokenBuilder, create_builder
+from agent_server.sglang_patch.continuous_token.chat_template import apply_chat_template
 
 TOOLS = [
     {

@@ -1,15 +1,15 @@
 """TrajectoryManager on a toy tokenizer: parent selection, delta storage and sample export.
 
-Every committed turn is also recorded the flat way (full prompt + output), and the delta store
-must rebuild exactly those sequences.
+SGLang renders prompts (continuous token runs there); ``_render_like_sglang`` plays its part. Every
+committed turn is also recorded the flat way (full prompt + output), and the delta store must
+rebuild exactly those sequences.
 """
 
 import numpy as np
 import pytest
 
-from agent_proxy.continuous_token import MergeResult
-from agent_proxy.protocol import Generation, R3Chunk
-from agent_proxy.trajectory import TrajectoryManager, context_key, message_fingerprint
+from agent_server.protocol import Generation, PromptEdit, R3Chunk
+from agent_server.trajectory import TrajectoryManager, context_key, message_fingerprint
 from miles.rollout.session.v2.picker_hub import drop_same_prompt_retries
 from miles.rollout.session.v2.postprocessor_hub.default_postprocess import default_postprocess
 from miles.utils.types import Sample
@@ -30,31 +30,28 @@ def _render(messages):
     return ids
 
 
-class ToyBuilder:
-    """Renders each appended message on its own; optionally replaces the previous sequence's final END."""
+def _render_like_sglang(prepared, *, replace_tail):
+    """Each message after the parent's path rendered on its own, plus the generation prompt.
 
-    def __init__(self, replace_tail: bool = False):
-        self.replace_tail = replace_tail
-
-    def build_initial_tokens(self, messages, *, tools=None):
-        return _render(messages) + [GEN]
-
-    def merge_context_tokens(self, previous, updated, runtime_token_ids, *, tools=None):
-        appended = _render(updated[len(previous) :]) + [GEN]
-        if self.replace_tail:
-            return MergeResult(
-                token_ids=runtime_token_ids[:-1] + [9] + appended,
-                appended_token_count=len(appended),
-                removed_prefix_token_count=1,
-            )
-        return MergeResult(token_ids=runtime_token_ids + appended, appended_token_count=len(appended))
+    With ``replace_tail`` it also replaces the parent's final END, as a builder fixing the junction would.
+    """
+    appended = _render(prepared.new_messages) + [GEN]
+    removed = 1 if replace_tail and prepared.parent_tokens else 0
+    delta = [9] * removed + appended
+    prefix_len = len(prepared.parent_tokens) - removed
+    edit = PromptEdit(
+        removed_prefix_token_count=removed,
+        input_delta=delta,
+        routed_experts_start_len=min(prepared.reusable_r3_rows, prefix_len),
+    )
+    return edit, prepared.parent_tokens[:prefix_len] + delta
 
 
 def _assistant(text):
     return {"role": "assistant", "content": text}
 
 
-def _generation(text, *, finish_reason="stop", logprob=-0.5, r3=None):
+def _generation(text, edit, *, finish_reason="stop", logprob=-0.5, r3=None):
     tokens = [ord(c) for c in text] + [END]
     meta_info = {
         "output_token_logprobs": [[logprob, token] for token in tokens],
@@ -68,6 +65,7 @@ def _generation(text, *, finish_reason="stop", logprob=-0.5, r3=None):
         output_logprobs=[logprob] * len(tokens),
         finish_reason=finish_reason,
         meta_info=meta_info,
+        prompt_edit=edit,
         r3=r3,
     )
 
@@ -75,21 +73,26 @@ def _generation(text, *, finish_reason="stop", logprob=-0.5, r3=None):
 class Session:
     """A manager plus the flat reference copy of every turn's full sequence."""
 
-    def __init__(self, builder=None):
+    def __init__(self, replace_tail=False):
         self.manager = TrajectoryManager()
-        self.builder = builder or ToyBuilder()
+        self.replace_tail = replace_tail
         self.flat: dict[int, list[int]] = {}
 
     def prepare(self, messages, key=KEY):
-        return self.manager.prepare(messages, tools=None, builder=self.builder, context_key=key)
+        return self.manager.prepare(messages, context_key=key)
 
-    def commit(self, prepared, generation):
+    def prompt(self, prepared):
+        return _render_like_sglang(prepared, replace_tail=self.replace_tail)[1]
+
+    def commit(self, prepared, reply, **kwargs):
+        edit, prompt = _render_like_sglang(prepared, replace_tail=self.replace_tail)
+        generation = _generation(reply, edit, **kwargs)
         node = self.manager.commit(prepared, generation)
-        self.flat[node.node_id] = prepared.input_ids + generation.output_tokens
+        self.flat[node.node_id] = prompt + generation.output_tokens
         return node
 
     def turn(self, messages, reply, **kwargs):
-        return self.commit(self.prepare(messages), _generation(reply, **kwargs))
+        return self.commit(self.prepare(messages), reply, **kwargs)
 
     def assert_matches_flat(self):
         for node_id, tokens in self.flat.items():
@@ -103,7 +106,7 @@ def test_linear_turns_store_only_the_delta():
     prepared = s.prepare([SYSTEM, USER, _assistant("a1"), tool])
     assert prepared.parent_id == first.node_id
     assert prepared.new_messages == [tool]
-    second = s.commit(prepared, _generation("a2"))
+    second = s.commit(prepared, "a2")
 
     assert second.prefix_len == first.end
     assert second.input_delta == _render([tool]) + [GEN]
@@ -157,8 +160,8 @@ def test_identical_replies_stay_separate_and_the_latest_is_extended():
     request = [SYSTEM, USER, _assistant("a1"), {"role": "user", "content": "x"}]
     # Prepared concurrently from the same parent, committed in either order: siblings.
     p1, p2 = s.prepare(request), s.prepare(request)
-    twin_a = s.commit(p2, _generation("same", logprob=-1.0))
-    twin_b = s.commit(p1, _generation("same", logprob=-2.0))
+    twin_a = s.commit(p2, "same", logprob=-1.0)
+    twin_b = s.commit(p1, "same", logprob=-2.0)
     assert twin_a.parent_id == twin_b.parent_id
     assert twin_a.output_logprobs != twin_b.output_logprobs
 
@@ -167,7 +170,7 @@ def test_identical_replies_stay_separate_and_the_latest_is_extended():
 
 
 def test_tail_replacement_keeps_parent_immutable():
-    s = Session(ToyBuilder(replace_tail=True))
+    s = Session(replace_tail=True)
     first = s.turn([SYSTEM, USER], "a1")
     second = s.turn([SYSTEM, USER, _assistant("a1"), {"role": "user", "content": "x"}], "a2")
     assert second.prefix_len == first.end - 1
@@ -216,15 +219,15 @@ def test_max_seq_len_cuts_at_turn_level():
 def test_routing_replay_rows_are_rebuilt_from_additional_chunks():
     s = Session()
     first_prepared = s.prepare([SYSTEM, USER])
-    total_first = len(first_prepared.input_ids) + 3  # "a1" + END
+    total_first = len(s.prompt(first_prepared)) + 3  # "a1" + END
     rows = np.arange(1000, dtype=np.int32).reshape(-1, 2, 1)  # synthetic [row, layer, topk]
-    first = s.commit(first_prepared, _generation("a1", r3=R3Chunk(row_start=0, values=rows[: total_first - 1])))
+    first = s.commit(first_prepared, "a1", r3=R3Chunk(row_start=0, values=rows[: total_first - 1]))
 
     prepared = s.prepare([SYSTEM, USER, _assistant("a1"), {"role": "user", "content": "x"}])
     assert prepared.reusable_r3_rows == first.end - 1
-    total = len(prepared.input_ids) + 3
+    total = len(s.prompt(prepared)) + 3
     start = prepared.reusable_r3_rows
-    s.commit(prepared, _generation("a2", r3=R3Chunk(row_start=start, values=rows[start : total - 1])))
+    s.commit(prepared, "a2", r3=R3Chunk(row_start=start, values=rows[start : total - 1]))
 
     (sample,) = s.manager.leaf_samples(max_seq_len=None, tokenizer=_Decoder())
     np.testing.assert_array_equal(sample.rollout_routed_experts, rows[: total - 1])
@@ -235,9 +238,9 @@ def test_routing_replay_gap_is_an_error():
     s = Session()
     first_prepared = s.prepare([SYSTEM, USER])
     rows = np.ones((100, 2, 1), dtype=np.int32)
-    s.commit(first_prepared, _generation("a1", r3=R3Chunk(row_start=0, values=rows[:3])))  # too few rows
+    s.commit(first_prepared, "a1", r3=R3Chunk(row_start=0, values=rows[:3]))  # too few rows
     prepared = s.prepare([SYSTEM, USER, _assistant("a1"), {"role": "user", "content": "x"}])
-    s.commit(prepared, _generation("a2", r3=R3Chunk(row_start=prepared.reusable_r3_rows, values=rows[:50])))
+    s.commit(prepared, "a2", r3=R3Chunk(row_start=prepared.reusable_r3_rows, values=rows[:50]))
     with pytest.raises(ValueError, match="routing rows"):
         s.manager.leaf_samples(max_seq_len=None, tokenizer=_Decoder())
 
@@ -270,6 +273,17 @@ def test_fingerprint_ignores_wire_only_differences():
     assert message_fingerprint({"role": "user", "content": [{"type": "text", "text": "hi"}]}) == message_fingerprint(
         {"role": "user", "content": "hi"}
     )
+    assert message_fingerprint({**stored, "content": "\n\n"}) == message_fingerprint(stored)
+    edit = {"id": "e", "type": "function", "function": {"name": "Edit", "arguments": '{"old": "a", "new": "b"}'}}
+    filled = {**edit, "function": {"name": "Edit", "arguments": '{"old": "a", "new": "b", "replace_all": false}'}}
+    renamed = {**edit, "function": {"name": "Write", "arguments": '{"old": "a", "new": "b"}'}}
+    as_message = lambda call: {"role": "assistant", "content": "", "tool_calls": [call]}  # noqa: E731
+    assert message_fingerprint(as_message(edit)) == message_fingerprint(as_message(filled))
+    assert message_fingerprint(as_message(edit)) != message_fingerprint(as_message(renamed))
+    system = {"role": "system", "content": "Be useful.\n<total_tokens>15000000 tokens left</total_tokens>"}
+    later = {"role": "system", "content": system["content"] + "\n<total_tokens>14984558 tokens left</total_tokens>"}
+    assert message_fingerprint(system) == message_fingerprint(later)
+    assert message_fingerprint(system) != message_fingerprint({"role": "system", "content": "Be careful."})
     assert message_fingerprint(stored) != message_fingerprint({**stored, "reasoning_content": None})
 
 

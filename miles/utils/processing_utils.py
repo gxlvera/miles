@@ -3,11 +3,13 @@ import inspect
 import io
 import logging
 import os
+import urllib.request
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 from huggingface_hub import hf_hub_download
+from PIL import Image
 from tokenizers import Tokenizer as RawTokenizer
 from transformers import AutoProcessor, AutoTokenizer, PreTrainedTokenizerBase, ProcessorMixin
 
@@ -190,3 +192,15 @@ def encode_image_for_rollout_engine(image) -> str:
     image.save(buffer, format="PNG")
     image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
     return f"data:image/png;base64,{image_base64}"
+
+
+def load_image_ref(ref: str) -> Image.Image:
+    """Load an image the way it was sent to the rollout engine: a data URI, an http(s) URL or a local path."""
+    if ref.startswith("data:"):
+        data = base64.b64decode(ref.split(",", 1)[1])
+    elif ref.startswith(("http://", "https://")):
+        with urllib.request.urlopen(ref, timeout=60) as response:
+            data = response.read()
+    else:
+        data = Path(ref).read_bytes()
+    return Image.open(io.BytesIO(data)).convert("RGB")
