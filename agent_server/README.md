@@ -47,7 +47,7 @@ The agent server is one Router plus N replicas. Each replica registers with the 
 
 Ablation: 64 Claude Code sessions on SWE-Gym (4 tasks × 16), Qwen3.5-4B, 8×H100, 64K context; one rollout batch trained both ways for one step (reproduce with §6.3).
 (Please click the blue text to jump to wandb log)
-| | [Per turn](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/proxy-per-turn-01) | [Turn merge](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/proxy-merge-01) |
+| | [Per turn](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/proxy-per-turn-01) | [Turn merge](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/proxy-merge-01) |
 | --- | ---: | ---: |
 | Samples | 4,439 | 64 |
 | Training tokens | 105.3 M | 2.71 M |
@@ -104,7 +104,7 @@ So the trajectory manager runs on the agent server in the CPU cluster, and the S
 
 Note: for the Continuous Token component, this take home is based on the codes implemented on verl (the work of mine during my internship at Bytedance). The modification and novelty in this take home is 
 1) it's refactored to be implemented on SGLang side;
-2) It supports multimodality at scale.
+2) It adds the support for multimodality.
 
 ### 4.1 Principles
 
@@ -156,18 +156,18 @@ Continuous token (CT) runs in SGLang's TokenizerManager, patched by [sglang_patc
 
 | Path | Content |
 | --- | --- |
-| `router.py` | replica registration, session placement |
-| `server.py` | replica HTTP app, session lifecycle, prepare → generate → commit |
-| `trajectory.py` | message trie, delta nodes, image references, sample assembly |
-| `protocol.py` | `SessionHandle`, `PreparedTurn`, `Generation`, `TurnNode`, `R3Chunk`, `AgentServerError` |
-| `backend.py` | request building, reply parsing (tokens, logprobs, versions, R3, prompt edit) |
-| `anthropic.py` | `/v1/messages` |
-| `miles_adapter.py` | worker specs, readiness, the Miles generate function and the agent server's flags |
+| `agent_server/router.py` | replica registration, session placement |
+| `agent_server/server.py` | replica HTTP app, session lifecycle, prepare → generate → commit |
+| `agent_server/trajectory.py` | message trie, delta nodes, image references, sample assembly |
+| `agent_server/protocol.py` | `SessionHandle`, `PreparedTurn`, `Generation`, `TurnNode`, `R3Chunk`, `AgentServerError` |
+| `agent_server/backend.py` | request building, reply parsing (tokens, logprobs, versions, R3, prompt edit) |
+| `agent_server/anthropic.py` | `/v1/messages` |
+| `agent_server/miles_adapter.py` | worker specs, readiness, the Miles generate function and the agent server's flags |
 | Miles hooks (outside this directory) | `miles/ray/specs/entrypoint.py` adds the Router and replica worker specs; `miles/ray/specs/rollout.py` hands the Router's provider to the rollout executor, and `miles/ray/rollout/rollout_executor.py` waits for every replica to register and sets `args.agent_server_router_url` |
-| `sglang_patch/` | what SGLang runs for the agent server: `continuous_token/` (CT builders, templates, image encoding; copied into SGLang) and `sglang.patch` (request fields and hooks), applied with `apply.sh`; `router.patch` and `build_router.sh` build the Rust router that forwards `prefix_message_count` |
-| Trainer side (outside this directory) | samples carry image references, and each trainer rank loads and processes its own images: `miles/ray/rollout/train_data_conversion.py`, `miles/backends/training_utils/data/rollout.py` and `multimodal.py`, `miles/utils/processing_utils.py`; `miles/rollout/session/samples/codec.py` carries `multimodal_inputs` |
-| `tests/` | `test_trajectory.py` (trie, deltas, export, R3, hooks; toy tokenizer); `test_backend.py` (backend retries); `test_continuous_token*.py` (CT against full renders); `test_replica.py` (Router plus two replicas plus a fake SGLang running CT); `test_multimodal.py` (turn-by-turn prompts, with and without images, against the one-shot HF processor; SGLang emulated with the same CT code, or a real patched SGLang); `test_swegym_*.py` (the SWE-Gym recipe and Claude Code round trips) |
-| `examples/` | `deepeyes_v1/` and `swegym/`: harness, launcher and data preparation for §6.2 and §6.3 |
+| `agent_server/sglang_patch/` | what SGLang runs for the agent server: `agent_server/sglang_patch/continuous_token/` (CT builders, templates, image encoding; copied into SGLang) and `agent_server/sglang_patch/sglang.patch` (request fields and hooks), applied with `agent_server/sglang_patch/apply.sh`; `agent_server/sglang_patch/router.patch` and `agent_server/sglang_patch/build_router.sh` build the Rust router that forwards `prefix_message_count` |
+| Trainer side (outside this directory) | samples carry image references, and each trainer rank loads and processes its own images: `miles/ray/rollout/train_data_conversion.py`, `miles/backends/training_utils/data/rollout.py`, `miles/backends/training_utils/data/multimodal.py`, `miles/utils/processing_utils.py`; `miles/rollout/session/samples/codec.py` carries `multimodal_inputs` |
+| `agent_server/tests/` | `agent_server/tests/test_trajectory.py` (trie, deltas, export, R3, hooks; toy tokenizer); `agent_server/tests/test_backend.py` (backend retries); `agent_server/tests/test_continuous_token*.py` (CT against full renders); `agent_server/tests/test_replica.py` (Router plus two replicas plus a fake SGLang running CT); `agent_server/tests/test_multimodal.py` (turn-by-turn prompts, with and without images, against the one-shot HF processor; SGLang emulated with the same CT code, or a real patched SGLang); `agent_server/tests/test_swegym_*.py` (the SWE-Gym recipe and Claude Code round trips) |
+| `agent_server/examples/` | `agent_server/examples/deepeyes_v1/` and `agent_server/examples/swegym/`: harness, launcher and data preparation for §6.2 and §6.3 |
 
 ## 6. QuickStart and E2E Experiment Overview
 
@@ -199,7 +199,7 @@ modal run $APP::smoke     # 3 steps, with an evaluation and a checkpoint save
 modal run --detach $APP::train --launcher-args "--num-rollout 30"
 ```
 
-Results of a 30-step run ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/lo9db6gi)):
+Results of a 30-step run ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/lo9db6gi)):
 
 | Chart | What it shows |
 | --- | --- |
@@ -225,12 +225,12 @@ python agent_server/examples/swegym/run_qwen3_5_4b_swegym.py --model-dir $MODELS
 
 The per-turn vs. turn-merge ablation of §3.1 is the same launcher for one step, once per way: `--num-rollout 1 --no-fully-async --no-save-optimizer --extra-args '--rollout-function-path paired_ablation.Baseline'` (then `paired_ablation.MergedReplay`), each with `--custom-rollout-log-function-path paired_ablation.log_rollout`. The baseline collects one batch and freezes it under `/workspace/proxy-turn-ablation/paired-data`; the merged way trains on the same frozen trajectories.
 
-**40-step end-to-end run** ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/humans&take-home/runs/merged-proxy-40-02)). To check the whole stack end to end, I trained the setup above for 40 steps: 64 episodes per step, fully async with weights at most one version stale. All 40 updates were valid, in 7.5 hours. The run used an earlier revision of this agent server, before tokenization moved into SGLang (§4).
+**40-step end-to-end run** ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/merged-proxy-40-02)). To check the whole stack end to end, I trained the setup above for 40 steps: 64 episodes per step, fully async with weights at most one version stale. All 40 updates were valid, in 7.5 hours. The run used an earlier revision of this agent server, before tokenization moved into SGLang (§4).
 
 | Chart | What it shows |
 | --- | --- |
 | <img src="assets/swegym_total_lengths.png" alt="rollout/total_lengths" width="680"> | **Context length.** Mean tokens per episode, against the 64K cap: 27K–43K per step, 36.6K on average; the longest episode had 48K. |
-| <img src="assets/swegym_mean_turns.png" alt="rollout/mean_turns_per_session" width="680"> | **Turns.** Mean turns per session: about 70 at the start and mostly 45–65 later. Each episode is a long-horizon task. |
+| <img src="assets/swegym_mean_turns.png" alt="ablation/mean_turns_per_session" width="680"> | **Turns.** Mean turns per session: about 70 at the start and mostly 45–65 later. Each episode is a long-horizon task. |
 | <img src="assets/swegym_raw_reward.png" alt="rollout/raw_reward" width="680"> | **Rollout reward.** It rises from 0.57 (mean of the first 10 steps) to 0.83 (last 10). Building each task's E2B template was slow, so to fit the time budget the run trained only on a small subset of tasks. The rise is on these training tasks only and does not necessarily indicate better generalization. |
 
 **This run shows that the stack implemented in this take-home can trains long-horizon multi-turn task end to end, with a training effect and no visible bug. It does not show a tuned recipe or strong final performance.**
