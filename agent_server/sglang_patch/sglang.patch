@@ -1,0 +1,231 @@
+diff --git a/python/sglang/srt/entrypoints/openai/protocol.py b/python/sglang/srt/entrypoints/openai/protocol.py
+index de378b6..8091130 100644
+--- a/python/sglang/srt/entrypoints/openai/protocol.py
++++ b/python/sglang/srt/entrypoints/openai/protocol.py
+@@ -955,6 +955,9 @@ class ChatCompletionRequest(BaseModel):
+     # tokenization entirely.  Messages are still used to derive stop tokens
+     # and tool_call_constraint.
+     input_ids: Optional[List[int]] = None
++    # agent_server: input_ids are the tokens of messages[:prefix_message_count]; continuous token
++    # renders the rest (sglang/srt/continuous_token) and the reply's meta_info carries prompt_edit.
++    prefix_message_count: Optional[int] = None
+ 
+     # For request id
+     rid: Optional[Union[List[str], str]] = None
+diff --git a/python/sglang/srt/entrypoints/openai/serving_chat.py b/python/sglang/srt/entrypoints/openai/serving_chat.py
+index 5917a93..c726018 100644
+--- a/python/sglang/srt/entrypoints/openai/serving_chat.py
++++ b/python/sglang/srt/entrypoints/openai/serving_chat.py
+@@ -1265,6 +1265,7 @@ class OpenAIServingChat(OpenAIServingBase):
+             return_hidden_states=request.return_hidden_states,
+             return_routed_experts=request.return_routed_experts,
+             routed_experts_start_len=request.routed_experts_start_len,
++            continuation=_continuation(request, raw_request),
+             rid=request.rid,
+             session_id=request.session_id,
+             extra_key=request.extra_key,
+@@ -3216,3 +3217,24 @@ class OpenAIServingChat(OpenAIServingBase):
+             return f"data: {chunk.model_dump_json()}\n\n"
+ 
+         return None
++
++
++def _continuation(
++    request: ChatCompletionRequest, raw_request: Optional[Request]
++) -> Optional[Dict[str, Any]]:
++    """What continuous token needs to extend request.input_ids, for agent_server requests."""
++    if request.prefix_message_count is None:
++        return None
++    # The JSON exactly as the client sent it: templates render tools with tojson, and the request
++    # models would reorder their keys (Function puts description before name). FastAPI has already
++    # read the body, which Starlette keeps on the request.
++    if raw_request is not None:
++        body = json.loads(raw_request._body)
++    else:
++        body = request.model_dump(mode="json", exclude_unset=True)
++    return {
++        "messages": body["messages"],
++        "prefix_message_count": request.prefix_message_count,
++        "tools": body.get("tools"),
++        "chat_template_kwargs": body.get("chat_template_kwargs") or {},
++    }
+diff --git a/python/sglang/srt/managers/io_struct.py b/python/sglang/srt/managers/io_struct.py
+index 4ebce9c..732a5a4 100644
+--- a/python/sglang/srt/managers/io_struct.py
++++ b/python/sglang/srt/managers/io_struct.py
+@@ -221,6 +221,12 @@ class GenerateReqInput:
+     ] = None
+     # Whether to extract and process audio from video inputs.
+     use_audio_in_video: bool = False
++    # agent_server: messages, prefix_message_count, tools and chat_template_kwargs for continuous
++    # token, which turns input_ids into the full prompt in TokenizerManager._continue_prompt.
++    continuation: Optional[Dict[str, Any]] = None
++    # Set by continuous token and returned in meta_info: removed_prefix_token_count, input_delta and
++    # routed_experts_start_len.
++    prompt_edit: Optional[Dict[str, Any]] = None
+     # Optional request-scoped video processor configuration.
+     video_config: Optional[Dict[str, Any]] = None
+     # The sampling_params. See descriptions below.
+@@ -487,7 +493,8 @@ class GenerateReqInput:
+                     if isinstance(self.session_params, dict)
+                     else None
+                 )
+-                if not session_id:
++                # A new agent_server conversation sends no tokens; continuous token renders them all.
++                if not session_id and self.continuation is None:
+                     raise ValueError("input_ids cannot be empty.")
+                 self.is_single = True
+                 self.batch_size = 1
+@@ -955,6 +962,7 @@ class GenerateReqInput:
+             video_data=self.video_data[i],
+             audio_data=self.audio_data[i],
+             mm_hashes=self.mm_hashes[i] if self.mm_hashes is not None else None,
++            continuation=self.continuation,
+             mm_content_hashes=(
+                 self.mm_content_hashes[i]
+                 if self.mm_content_hashes is not None
+diff --git a/python/sglang/srt/managers/tokenizer_manager.py b/python/sglang/srt/managers/tokenizer_manager.py
+index 110c1d9..0571325 100644
+--- a/python/sglang/srt/managers/tokenizer_manager.py
++++ b/python/sglang/srt/managers/tokenizer_manager.py
+@@ -104,6 +104,7 @@ from sglang.srt.managers.io_struct import (
+     unwrap_from_pickle,
+ )
+ from sglang.srt.managers.load_snapshot import create_load_snapshot_reader
++from sglang.srt.continuous_token import continue_prompt
+ from sglang.srt.managers.mm_utils import wrap_shm_features
+ from sglang.srt.managers.multimodal_processor import get_mm_processor, import_processors
+ from sglang.srt.managers.schedule_batch import (
+@@ -1065,11 +1066,44 @@ class TokenizerManager(TokenizerControlMixin, TokenizerManagerScoreMixin):
+             input_ids, token_type_ids, input_format, original_batch_size
+         )
+ 
++    async def _continue_prompt(self, obj: GenerateReqInput) -> None:
++        """agent_server requests: extend the parent's tokens with the new messages (continuous token).
++
++        Groups with images are encoded by the HF processor, so the prompt comes out with every
++        image expanded, and the processor outputs of all its images go on as preprocessed image
++        data. The tokens before prefix_len are never decoded.
++        """
++        request, sent_ids = obj.continuation, list(obj.input_ids)
++        continuation = await asyncio.to_thread(
++            continue_prompt,
++            self.tokenizer,
++            self.processor if self.mm_processor is not None else None,
++            model_type=self.model_config.hf_config.model_type,
++            input_ids=sent_ids,
++            messages=request["messages"],
++            prefix_message_count=request["prefix_message_count"],
++            tools=request["tools"],
++            chat_template_kwargs=request["chat_template_kwargs"],
++        )
++        obj.input_ids = continuation.input_ids
++        if continuation.image_inputs is not None:
++            obj.image_data = [{"format": "processor_output", **continuation.image_inputs}]
++        if obj.return_routed_experts:
++            # Rows past the kept prefix depend on tokens continuous token replaced.
++            obj.routed_experts_start_len = min(obj.routed_experts_start_len, continuation.prefix_len)
++        obj.prompt_edit = {
++            "removed_prefix_token_count": len(sent_ids) - continuation.prefix_len,
++            "input_delta": continuation.input_ids[continuation.prefix_len :],
++            "routed_experts_start_len": obj.routed_experts_start_len,
++        }
++
+     async def _tokenize_one_request(
+         self,
+         obj: Union[GenerateReqInput, EmbeddingReqInput],
+     ):
+         """Tokenize one request."""
++        if getattr(obj, "continuation", None) is not None:
++            await self._continue_prompt(obj)
+         # Tokenize
+         input_embeds = None
+         input_text = obj.text
+@@ -2576,6 +2610,8 @@ class TokenizerManager(TokenizerControlMixin, TokenizerManagerScoreMixin):
+                         meta_info["indexer_topk_num_layers"] = n
+             if getattr(recv_obj, "dp_ranks", None):
+                 meta_info["dp_rank"] = recv_obj.dp_ranks[i]
++            if (prompt_edit := getattr(state.obj, "prompt_edit", None)) is not None:
++                meta_info["prompt_edit"] = prompt_edit
+ 
+             state.finished = recv_obj.finished_reasons[i] is not None
+ 
+diff --git a/python/sglang/srt/models/qwen2_5_vl.py b/python/sglang/srt/models/qwen2_5_vl.py
+index 1107106..210b04b 100644
+--- a/python/sglang/srt/models/qwen2_5_vl.py
++++ b/python/sglang/srt/models/qwen2_5_vl.py
+@@ -533,8 +533,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+         window_index = window_index.to(device=x.device)
+         reverse_indices = permute_inv(window_index)
+ 
+-        # Ensure rotary_pos_emb is on the same device/dtype as x
+-        rotary_pos_emb = rotary_pos_emb.to(device=x.device, dtype=x.dtype)
++        # Angles stay fp32, as in transformers: rounded to bf16, the large ones are off by up to half a radian.
++        rotary_pos_emb = rotary_pos_emb.to(device=x.device)
+ 
+         seq_len, _ = x.size()
+ 
+@@ -547,12 +547,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+         rotary_pos_emb = rotary_pos_emb[window_index, :, :]
+         rotary_pos_emb = rotary_pos_emb.reshape(seq_len, -1)
+         emb = torch.cat((rotary_pos_emb, rotary_pos_emb), dim=-1)
++        # cos and sin stay fp32 too: apply_rotary_pos_emb rotates q and k in fp32, as transformers does.
+         position_embeddings = (emb.cos(), emb.sin())
+-        # After building position_embeddings, make sure both cos and sin are on the same device/dtype as the attention input
+-        position_embeddings = (
+-            position_embeddings[0].to(x.device, x.dtype),
+-            position_embeddings[1].to(x.device, x.dtype),
+-        )
+ 
+         # compute cu_seqlens - move cu_seqlens to GPU and make it int32
+         cu_seqlens = torch.cat(
+@@ -627,7 +623,8 @@ class Qwen2_5_VisionTransformer(nn.Module, RotaryPosMixin):
+ 
+         window_index = window_index.to(device=x.device)
+         reverse_indices = permute_inv(window_index)
+-        rotary_pos_emb = rotary_pos_emb.to(device=x.device, dtype=x.dtype)
++        # Angles stay fp32, as in transformers: rounded to bf16, the large ones are off by up to half a radian.
++        rotary_pos_emb = rotary_pos_emb.to(device=x.device)
+ 
+         # patch token num
+         seq_len, _ = x.size()
+diff --git a/python/sglang/srt/multimodal/processors/qwen_vl.py b/python/sglang/srt/multimodal/processors/qwen_vl.py
+index 4b295a3..f64b30c 100644
+--- a/python/sglang/srt/multimodal/processors/qwen_vl.py
++++ b/python/sglang/srt/multimodal/processors/qwen_vl.py
+@@ -46,6 +46,7 @@ from sglang.srt.multimodal.processors.base_processor import (
+     BaseMultimodalProcessor as SGLangBaseProcessor,
+ )
+ from sglang.srt.multimodal.processors.base_processor import (
++    BaseMultiModalProcessorOutput,
+     MultimodalSpecialTokens,
+ )
+ from sglang.srt.multimodal.transport.cuda_ipc import (
+@@ -1011,13 +1012,20 @@ class QwenVLImageProcessor(MediaArtifactCacheMixin, SGLangBaseProcessor):
+         **kwargs,
+     ):
+         entry_time = time.perf_counter()
+-        base_output = await self.legacy_load_mm_data(
+-            prompt=input_text,
+-            image_data=image_data,
+-            video_data=request_obj.video_data,
+-            audio_data=request_obj.audio_data,
+-            multimodal_tokens=self.mm_tokens,
+-        )
++        if getattr(request_obj, "continuation", None) is not None:
++            # Continuous token expanded every image and ran the processor (TokenizerManager._continue_prompt).
++            # What is left is the items, their offsets in these ids and M-RoPE; the ids are never decoded.
++            base_output = BaseMultiModalProcessorOutput(
++                input_text="", input_ids=list(input_text), images=list(image_data)
++            )
++        else:
++            base_output = await self.legacy_load_mm_data(
++                prompt=input_text,
++                image_data=image_data,
++                video_data=request_obj.video_data,
++                audio_data=request_obj.audio_data,
++                multimodal_tokens=self.mm_tokens,
++            )
+         load_time = time.perf_counter()
+         rid = getattr(request_obj, "rid", "anonymous_rid")
+ 

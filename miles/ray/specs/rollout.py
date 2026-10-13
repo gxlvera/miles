@@ -6,6 +6,7 @@ from miles.ray.specs.inference import (
 from miles.utils.workers.backend_capability.base import BackendCapability
 from miles.utils.workers.naming import compute_cell_id, compute_worker_name
 from miles.utils.workers.worker_handle import BaseWorkerHandle
+from miles.utils.workers.worker_provider.base import BaseWorkerProvider
 from miles.utils.workers.worker_spec import SchedulingSpec, ServeWorkerSpec
 
 ROLLOUT_EXECUTOR_POOL_ID = "rollout-executor"
@@ -34,8 +35,18 @@ def spec_rollout_executor(args) -> ServeWorkerSpec:
                 else None
             ),
             inference_controller_provider=compute_inference_controller_provider(args, capability=ctx.capability),
+            agent_server_router_provider=_compute_agent_server_router_provider(args, capability=ctx.capability),
         ),
     )
+
+
+def _compute_agent_server_router_provider(args, *, capability: BackendCapability) -> BaseWorkerProvider | None:
+    if not getattr(args, "use_agent_server", False):
+        return None
+    # agent_server/ is a top-level folder outside the miles package; import it only when it is used.
+    from agent_server.miles_adapter import agent_server_router_provider
+
+    return agent_server_router_provider(capability)
 
 
 def create_rollout_executor_handle(*, capability: BackendCapability) -> BaseWorkerHandle:

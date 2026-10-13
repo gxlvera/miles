@@ -1,3 +1,4 @@
+import functools
 import logging
 from argparse import Namespace
 from collections.abc import Sequence
@@ -7,17 +8,23 @@ import torch.distributed as dist
 import torch.nn.functional as F
 
 from miles.backends.training_utils.data.context_parallel import slice_log_prob_with_cp, slice_with_cp
-from miles.backends.training_utils.data.multimodal import expand_multimodal_rollout_data_in_place
+from miles.backends.training_utils.data.multimodal import (
+    expand_multimodal_rollout_data_in_place,
+    image_refs_to_train_inputs,
+)
 from miles.backends.training_utils.parallel import get_parallel_state
 from miles.utils.audit_utils.witness.allocator import WitnessInfo
 from miles.utils.data import get_minimum_num_micro_batch_size, process_rollout_data
 from miles.utils.ft_utils.process_group_utils import GeneralPGUtil
 from miles.utils.object_store import ObjectStoreGetResult
+from miles.utils.processing_utils import load_processor
 from miles.utils.ray_utils import Box
 from miles.utils.seqlen_balancing import get_seqlen_balanced_partitions
 from miles.utils.types import RolloutBatch
 
 logger = logging.getLogger(__name__)
+
+_load_processor_once = functools.cache(load_processor)
 
 
 def _rollout_logprob_dtype(args: Namespace) -> torch.dtype:
@@ -44,6 +51,11 @@ def get_rollout_data(
         parallel_state.effective_dp.size,
         witness_info=witness_info,
     )
+    if "image_refs" in rollout_data:
+        # Each rank loads and processes the images of its own samples.
+        rollout_data["multimodal_train_inputs"] = image_refs_to_train_inputs(
+            _load_processor_once(args.hf_checkpoint), rollout_data.pop("image_refs"), rollout_data["tokens"]
+        )
     # move tokens to GPU in advance
     rollout_data["tokens"] = [
         torch.tensor(t, dtype=torch.long, device=torch.cuda.current_device()) for t in rollout_data["tokens"]

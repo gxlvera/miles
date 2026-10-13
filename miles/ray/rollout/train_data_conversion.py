@@ -42,6 +42,7 @@ ROLLOUT_DATA_VALUE_SPEC: dict[str, ValueSpec] = {
     "rollout_ids": ValueSpec(codec="ndarray", dtype="int64"),
     "rollout_mask_sums": ValueSpec(codec="ndarray", dtype="int64"),
     "multimodal_train_inputs": ValueSpec(codec="ragged_tensor_dict"),
+    "image_refs": ValueSpec(codec="msgpack_ragged"),
     "prompt": ValueSpec(codec="msgpack_ragged"),
     "metadata": ValueSpec(codec="msgpack_ragged"),
     "weight_versions": ValueSpec(codec="msgpack_ragged"),
@@ -175,6 +176,9 @@ def convert_samples_to_train_data(
 
     if any(sample.multimodal_train_inputs is not None for sample in samples):
         train_data["multimodal_train_inputs"] = [sample.multimodal_train_inputs for sample in samples]
+    elif any(_image_refs(sample) for sample in samples):
+        # References instead of tensors (agent_server samples): every trainer rank processes its own images.
+        train_data["image_refs"] = [_image_refs(sample) for sample in samples]
 
     if any(sample.weight_versions for sample in samples):
         train_data["weight_versions"] = [[call.to_dicts() for call in sample.weight_versions] for sample in samples]
@@ -194,6 +198,12 @@ def convert_samples_to_train_data(
         train_data["dynamic_global_batch_size"] = x
 
     return train_data
+
+
+def _image_refs(sample: Sample) -> list[str] | None:
+    """Images given as references (URL, data URI or path) rather than loaded objects."""
+    images = (sample.multimodal_inputs or {}).get("images")
+    return images if images and all(isinstance(image, str) for image in images) else None
 
 
 def _compact_candidate_ids(data: dict) -> None:
@@ -359,7 +369,7 @@ def can_schedule_on_rollout_side(args, data: dict[str, Any], train_parallel_conf
         return False
     if is_multi_lora_enabled(args):
         return False
-    if "multimodal_train_inputs" in data:
+    if "multimodal_train_inputs" in data or "image_refs" in data:
         return False
     if "rollout_ids" not in data:
         return False
@@ -425,6 +435,7 @@ def _package_shards(args, data: dict[str, Any], partitions) -> list[dict[str, An
         for key in [
             "tokens",
             "multimodal_train_inputs",
+            "image_refs",
             "response_lengths",
             "rewards",
             "truncated",

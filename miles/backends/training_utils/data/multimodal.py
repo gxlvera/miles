@@ -6,6 +6,10 @@ patch / audio frame. Two families live here: Kimi-VL / Kimi-K2.5 (grid-derived
 expansion of an in-vocab placeholder) and Inkling (out-of-vocab sentinels expanded
 to in-vocab placeholder runs with explicit positions). Kept separate from
 data.py (generic batching / CP slicing).
+
+Samples from agent_server are the other way round: their tokens are already
+expanded by the rollout engine and they carry image references, which
+``image_refs_to_train_inputs`` loads and processes on the trainer.
 """
 
 import logging
@@ -15,6 +19,7 @@ import torch
 
 from miles.backends.training_utils.data.context_parallel import all_gather_with_cp, slice_log_prob_with_cp
 from miles.backends.training_utils.parallel import get_parallel_state
+from miles.utils.processing_utils import load_image_ref
 from miles.utils.types import RolloutBatch
 
 logger = logging.getLogger(__name__)
@@ -289,3 +294,31 @@ def expand_multimodal_rollout_data_in_place(
             f"total_lengths_changed={expanded_total_lengths != old_total_lengths}, "
             f"response_lengths_changed={expanded_response_lengths != old_response_lengths}"
         )
+
+
+def image_refs_to_train_inputs(
+    processor, image_refs: Sequence[list[str] | None], tokens: Sequence[Sequence[int]]
+) -> list[dict[str, torch.Tensor] | None]:
+    """``multimodal_train_inputs`` for samples that carry image references instead of tensors.
+
+    ``processor`` is the checkpoint's HF processor, whose image processor the rollout engine used too.
+    Tokens are never changed: each image is already expanded in them, so they only have to hold
+    exactly as many image tokens as the processed grids need.
+    """
+    merge_size = processor.image_processor.merge_size
+    train_inputs = []
+    for refs, sample_tokens in zip(image_refs, tokens, strict=True):
+        if not refs:
+            train_inputs.append(None)
+            continue
+        processed = processor.image_processor(images=[load_image_ref(ref) for ref in refs], return_tensors="pt")
+        grid = processed["image_grid_thw"]
+        needed = int(grid.prod(-1).sum()) // merge_size**2
+        present = int(torch.as_tensor(sample_tokens).eq(processor.image_token_id).sum())
+        if present != needed:
+            raise ValueError(
+                f"sample holds {present} image tokens but its {len(refs)} images need {needed}: "
+                "the trainer and the rollout engine process images differently"
+            )
+        train_inputs.append({"pixel_values": processed["pixel_values"], "image_grid_thw": grid})
+    return train_inputs

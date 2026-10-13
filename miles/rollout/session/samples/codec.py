@@ -4,7 +4,8 @@ Only fields in `SAMPLES_VALUE_SPEC` cross the wire. `encode_samples` packs them
 into safetensors; `decode_samples_and_merge_input_sample` overlays them onto a
 deepcopy of the input sample and merges server metadata.
 
-Tree-serving v2 selects `SAMPLES_VALUE_SPEC_V2` to carry `Sample.reward`.
+Tree-serving v2 selects `SAMPLES_VALUE_SPEC_V2` to carry `Sample.reward` and
+`Sample.multimodal_inputs` (image references, never tensors).
 """
 
 import dataclasses
@@ -49,10 +50,12 @@ SAMPLES_VALUE_SPEC: dict[str, ValueSpec] = {
     "metadata": ValueSpec("json"),
 }
 
-# Tree-serving v2 adds `Sample.reward` to the wire.
+# Tree-serving v2 adds `Sample.reward` and `Sample.multimodal_inputs` to the wire. The latter is JSON:
+# a server sends image references (`{"images": [url, ...]}`), and the trainer loads the images itself.
 SAMPLES_VALUE_SPEC_V2: dict[str, ValueSpec] = {
     **SAMPLES_VALUE_SPEC,
     "reward": ValueSpec("json"),
+    "multimodal_inputs": ValueSpec("json"),
 }
 
 ROLLOUT_SAMPLING_MASK_FIELDS = ("rollout_sampling_mask",)
@@ -193,9 +196,9 @@ def decode_samples_and_merge_input_sample(
                     value = Sample.SpecInfo.from_dict(value)
                 elif field == "prefix_cache_info":
                     value = Sample.PrefixCacheInfo.from_dict(value)
-                elif field == "reward":
-                    # Server reward is authoritative only when assigned; a null
-                    # keeps the driver input's local reward.
+                elif field in ("reward", "multimodal_inputs"):
+                    # Server value is authoritative only when assigned; a null
+                    # keeps the driver input's local value.
                     if value is None:
                         continue
                 elif field == "metadata":
