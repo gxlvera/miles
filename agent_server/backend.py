@@ -9,6 +9,9 @@ extends the parent's tokens. Its reasoning and tool-call parsers build the reply
 ``meta_info.output_token_logprobs``, never from re-tokenizing the reply text.
 """
 
+import asyncio
+import itertools
+import logging
 from types import SimpleNamespace
 from typing import Any
 
@@ -17,9 +20,14 @@ from agent_server.protocol import AgentServerError, Generation, PromptEdit, R3Ch
 
 from miles.rollout.generate_utils.generate_endpoint_utils import get_routed_experts_from_response
 
+logger = logging.getLogger(__name__)
+
 # Client fields the agent server owns. The backend call is always non-streaming because the agent server needs
 # the complete reply with meta_info before it can commit the turn.
 _CLIENT_ONLY_KEYS = ("stream", "stream_options")
+
+# Wait before the first retry of a failed backend call; doubled for every further retry.
+_RETRY_DELAY_SECONDS = 1.0
 
 
 def build_request(
@@ -49,7 +57,34 @@ def build_request(
     return body
 
 
-async def generate(client: httpx.AsyncClient, backend_url: str, body: dict[str, Any], *, routing_key: str) -> dict:
+async def generate(
+    client: httpx.AsyncClient, backend_url: str, body: dict[str, Any], *, routing_key: str, max_retries: int
+) -> dict:
+    """Send one turn to the inference router, and send it again after a transport error or a 5xx reply.
+
+    Nothing is committed before a reply arrives, so a retry reruns the same turn from the same parent
+    tokens. The router picks the engine for every attempt and skips one it has marked dead. A 4xx reply
+    (e.g. 400 for a context that is too long) would fail again and goes to the agent at once.
+    """
+    for attempt in itertools.count():
+        try:
+            return await _post_chat(client, backend_url, body, routing_key=routing_key)
+        except AgentServerError as exc:
+            if exc.status_code < 500 or attempt == max_retries:
+                raise
+            delay = _RETRY_DELAY_SECONDS * 2**attempt
+            logger.warning(
+                "inference backend failed (%d: %s); retry %d/%d in %.0f s",
+                exc.status_code,
+                exc.message[:200],
+                attempt + 1,
+                max_retries,
+                delay,
+            )
+            await asyncio.sleep(delay)
+
+
+async def _post_chat(client: httpx.AsyncClient, backend_url: str, body: dict[str, Any], *, routing_key: str) -> dict:
     # Session affinity: one session's turns land on one engine, which keeps its prefix cache warm.
     try:
         response = await client.post(

@@ -11,70 +11,53 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Continuous token (CT) builders: the generic builder and Qwen.
+"""Continuous token (CT) builders: the generic builder, Qwen and GLM.
 
-Ported from verl ``verl/utils/tokenizer/continuous_token.py``, branch ``gxl-ct-rollback-support``
-(commit e18c3167).
+The history is never re-rendered. Each newly appended message group is rendered inside a small
+synthetic context (fake system + user, plus a fake assistant whose tool calls the tool results
+answer), and the tokens the group adds are appended to the exact tokens the model already saw and
+produced. A subclass then fixes the junction: Qwen, for example, stops generating at
+``<|im_end|>`` while its template expects ``<|im_end|>\\n``.
 
-The builder only builds prompts. The backend's output tokens are appended as they are, and loss
-masks are derived from the turn tree when samples are exported. A rollback is a new branch from
-an earlier turn, which is an ordinary context merge.
-
-How CT builds a prompt: the history is never re-rendered. Each newly appended message group is
-rendered inside a small synthetic context (fake system + user, plus a fake assistant with tool
-calls for tool results), and the tokens that the group adds are appended to the exact tokens the
-model already saw and produced. A subclass then fixes the junction; Qwen, for example, stops
-generating at ``<|im_end|>`` while its template expects ``<|im_end|>\n``.
-
-Images: a group with images is rendered to text and encoded by the model's processor together with
-its images (``encode_images``), so its placeholders come out expanded by the processor itself. The
-synthetic context never holds images.
+A group with images is rendered to text and encoded by the model's processor together with its
+images (``encode_images``), so the processor itself expands their placeholders. The synthetic
+context never holds images.
 """
 
-import logging
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 # Relative imports: this package is also copied into SGLang as ``sglang.srt.continuous_token``.
 from .chat_template import apply_chat_template, render_chat_text
 from .media import message_images
 
-_SUPPORTED_APPEND_ROLES = frozenset({"tool", "user", "system", "assistant"})
+_APPEND_ROLES = frozenset({"tool", "user", "system", "assistant"})
 _SYNTHETIC_SYSTEM_MESSAGE: dict[str, Any] = {"role": "system", "content": "continuous token synthetic system"}
 _SYNTHETIC_USER_MESSAGE: dict[str, Any] = {"role": "user", "content": "continuous token synthetic user"}
-_ASSISTANT_REASONING_CONTENT = "reasoning"
-_DUMMY_TOOL_NAME = "continuous_token_tool"
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class MergeResult:
-    """The merged prompt plus how it changed at the junction with the previous tokens.
+    """The merged prompt.
 
-    ``inserted_token_ids`` are boundary tokens CT added itself (never model output), and
-    ``removed_prefix_token_count`` counts trailing tokens of the previous sequence that were
-    dropped before appending. The agent server stores ``len(previous) - removed_prefix_token_count``
-    as the new turn's ``prefix_len``.
+    ``removed_prefix_token_count`` trailing tokens of the previous sequence were replaced; the agent
+    server stores ``len(previous) - removed_prefix_token_count`` as the new turn's ``prefix_len``.
     """
 
     token_ids: list[int]
-    appended_token_count: int
-    inserted_token_ids: list[int] = field(default_factory=list)
     removed_prefix_token_count: int = 0
 
 
 class ContinuousTokenBuilder:
-    """Build the first prompt of a conversation and extend an existing token sequence with new messages.
+    """Build the first prompt of a conversation, or extend a token sequence with new messages.
 
-    Public API: ``build_initial_tokens`` and ``merge_context_tokens``. A builder given ``encode_images``
-    collects the processor outputs of the images it encoded in ``image_inputs``, so it serves one request.
-    Template-specific behavior lives in the hooks ``_tokenize_tool_group``,
-    ``_tokenize_single_non_tool``, ``_merge_context_group`` and ``_merge_context_token_ids``.
+    Callers use ``build_initial_tokens`` and ``merge_context_tokens``. A model family overrides
+    ``_tokenize_tool_group`` / ``_tokenize_single_non_tool`` (how one appended group renders) and
+    ``_merge_context_token_ids`` (the junction with the previous tokens). A builder given
+    ``encode_images`` collects the processor outputs of the images it encodes in ``image_inputs``,
+    so it serves one request.
     """
-
-    allowed_append_roles: frozenset[str] = _SUPPORTED_APPEND_ROLES
 
     def __init__(
         self,
@@ -90,10 +73,7 @@ class ContinuousTokenBuilder:
         self.image_inputs: list[dict[str, Any]] = []  # one entry per encode_images call, in prompt order
 
     def build_initial_tokens(
-        self,
-        messages: list[dict[str, Any]],
-        *,
-        tools: list[dict[str, Any]] | None = None,
+        self, messages: list[dict[str, Any]], *, tools: list[dict[str, Any]] | None = None
     ) -> list[int]:
         """Render a conversation that has no reusable prefix (a new root)."""
         return self._render_tokens(messages, add_generation_prompt=True, tools=tools)
@@ -106,241 +86,75 @@ class ContinuousTokenBuilder:
         *,
         tools: list[dict[str, Any]] | None = None,
     ) -> MergeResult:
-        """Append the messages after ``previous_messages`` to ``runtime_token_ids``, ending with a generation prompt."""
-        appended_messages = updated_messages[len(previous_messages) :]
-        appended_ids = self.tokenize_context_incremental_messages(previous_messages, updated_messages, tools=tools)
-        return self._merge_context_token_ids(
-            runtime_token_ids,
-            appended_ids,
-            previous_messages=previous_messages,
-            appended_messages=appended_messages,
-        )
-
-    def tokenize_context_incremental_messages(
-        self,
-        previous_messages: list[dict[str, Any]],
-        updated_messages: list[dict[str, Any]],
-        *,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> list[int]:
-        self._assert_append_only(previous_messages, updated_messages)
-        appended_messages = updated_messages[len(previous_messages) :]
-        if not appended_messages:
-            return []
-        incremental_ids: list[int] = []
-        processed_messages = list(previous_messages)
-
-        groups = self._iter_append_groups(appended_messages)
-        # Render the generation prompt together with the last group, so the history is never
-        # rendered just to learn what ``add_generation_prompt=True`` adds.
-        fuse_generation_prompt = self._should_fuse_generation_prompt_with_last_group()
-
-        for index, group in enumerate(groups):
-            add_generation_prompt = fuse_generation_prompt and index == len(groups) - 1
-            role = group[0].get("role")
-            if role == "tool":
-                group_token_ids = self._tokenize_tool_group(
-                    group,
-                    previous_messages=processed_messages,
-                    tools=tools,
-                    add_generation_prompt=add_generation_prompt,
-                )
-            elif role in {"user", "system", "assistant"}:
-                # System appends can represent retry/control messages; unsupported templates fail in the suffix diff.
-                if len(group) != 1:
-                    raise ValueError(
-                        f"Continuous Token expects one {role!r} message per append group, got {len(group)}"
-                    )
-                if role == "assistant" and index == len(groups) - 1:
-                    raise ValueError("Continuous Token context incremental messages cannot end with assistant")
-                group_token_ids = self._tokenize_single_non_tool(
-                    group[0],
-                    tools=tools,
-                    add_generation_prompt=add_generation_prompt,
-                )
-            else:
-                raise ValueError(f"Unsupported Continuous Token append role: {role!r}")
-            self._merge_context_group(
-                incremental_ids,
-                group_token_ids,
-                group=group,
-                processed_messages=processed_messages,
-                tools=tools,
-            )
-            processed_messages.extend(group)
-
-        if not fuse_generation_prompt:
-            incremental_ids.extend(self._tokenize_generation_prompt_delta(updated_messages, tools=tools))
-        return incremental_ids
-
-    def render_delta_token_id(
-        self,
-        prefix_messages: list[dict[str, Any]],
-        appended_messages: list[dict[str, Any]],
-        *,
-        add_generation_prompt: bool = False,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> list[int]:
-        """Render prefix and prefix + appended, and return the token suffix the appended messages add."""
-        if message_images(prefix_messages):
-            # The processor would encode the prefix's images too and the diff would cut through them.
-            raise ValueError("Continuous Token renders images only in appended messages, after an image-free prefix")
-        prefix_token_ids = self._render_tokens(prefix_messages, add_generation_prompt=False, tools=tools)
-        full_token_ids = self._render_tokens(
-            prefix_messages + appended_messages,
-            add_generation_prompt=add_generation_prompt,
-            tools=tools,
-        )
-        if full_token_ids[: len(prefix_token_ids)] != prefix_token_ids:
-            roles = [message.get("role") for message in appended_messages] or ["generation_prompt"]
-            raise ValueError(f"Continuous Token token-id suffix diff failed for roles: {roles}")
-        return full_token_ids[len(prefix_token_ids) :]
-
-    def _merge_context_group(
-        self,
-        incremental_ids: list[int],
-        group_token_ids: list[int],
-        *,
-        group: list[dict[str, Any]],
-        processed_messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-    ) -> None:
-        """Merge one encoded context group into the incremental token stream."""
-        incremental_ids.extend(group_token_ids)
-
-    def _merge_context_token_ids(
-        self,
-        runtime_token_ids: list[int],
-        appended_token_ids: list[int],
-        **kwargs: Any,
-    ) -> MergeResult:
-        """Join the previous tokens and the appended tokens; subclasses fix the junction here."""
-        return MergeResult(
-            token_ids=list(runtime_token_ids) + list(appended_token_ids),
-            appended_token_count=len(appended_token_ids),
-        )
-
-    def _render_tokens(
-        self,
-        messages: list[dict[str, Any]],
-        *,
-        add_generation_prompt: bool,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> list[int]:
-        images = message_images(messages)
-        if images:
-            if self.encode_images is None:
-                raise ValueError("messages contain images, but this Continuous Token builder has no image encoder")
-            text = render_chat_text(
-                self.tokenizer,
-                messages,
-                add_generation_prompt=add_generation_prompt,
-                tools=tools,
-                **self.chat_template_kwargs,
-            )
-            token_ids, image_inputs = self.encode_images(text, images)
-            self.image_inputs.append(image_inputs)
-            return token_ids
-        return apply_chat_template(
-            self.tokenizer,
-            messages,
-            add_generation_prompt=add_generation_prompt,
-            tools=tools,
-            **self.chat_template_kwargs,
-        )
-
-    def _tokenize_tool_group(
-        self,
-        tool_messages: list[dict[str, Any]],
-        *,
-        previous_messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        add_generation_prompt: bool = False,
-    ) -> list[int]:
-        synthetic_assistant = self._synthetic_assistant_for_tools(tool_messages)
-        return self.render_delta_token_id(
-            [_SYNTHETIC_SYSTEM_MESSAGE, _SYNTHETIC_USER_MESSAGE, synthetic_assistant],
-            tool_messages,
-            add_generation_prompt=add_generation_prompt,
-            tools=tools,
-        )
-
-    def _tokenize_single_non_tool(
-        self,
-        message: dict[str, Any],
-        *,
-        tools: list[dict[str, Any]] | None = None,
-        add_generation_prompt: bool = False,
-    ) -> list[int]:
-        return self.render_delta_token_id(
-            [_SYNTHETIC_SYSTEM_MESSAGE, _SYNTHETIC_USER_MESSAGE],
-            [message],
-            add_generation_prompt=add_generation_prompt,
-            tools=tools,
-        )
-
-    def _should_fuse_generation_prompt_with_last_group(self) -> bool:
-        """Whether the last append group's render also adds the generation prompt.
-
-        A builder whose template derives the generation scaffold from more than the appended
-        group returns False and implements ``_tokenize_generation_prompt_delta`` instead.
-        """
-        return True
-
-    def _tokenize_generation_prompt_delta(
-        self,
-        updated_messages: list[dict[str, Any]],
-        *,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> list[int]:
-        """Tokens added only by ``add_generation_prompt=True``."""
-        return self.render_delta_token_id(updated_messages, [], add_generation_prompt=True, tools=tools)
-
-    def _iter_append_groups(self, appended_messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
-        """Consecutive tool results form one group (they answer one assistant turn); every other message is its own group."""
-        groups: list[list[dict[str, Any]]] = []
-        index = 0
-        while index < len(appended_messages):
-            end = index + 1
-            if appended_messages[index].get("role") == "tool":
-                while end < len(appended_messages) and appended_messages[end].get("role") == "tool":
-                    end += 1
-            groups.append(appended_messages[index:end])
-            index = end
-        return groups
-
-    def _assert_append_only(
-        self,
-        previous_messages: list[dict[str, Any]],
-        updated_messages: list[dict[str, Any]],
-    ) -> None:
-        if len(updated_messages) < len(previous_messages):
-            raise ValueError("Continuous Token messages must be append-only; updated_messages is shorter")
+        """Append the messages after ``previous_messages`` to ``runtime_token_ids``, plus a generation prompt."""
         if updated_messages[: len(previous_messages)] != previous_messages:
             raise ValueError("Continuous Token messages must be append-only; prefix messages changed")
-        for message in updated_messages[len(previous_messages) :]:
-            role = message.get("role")
-            if role not in self.allowed_append_roles:
-                raise ValueError(
-                    f"Continuous Token only supports appending roles {sorted(self.allowed_append_roles)}, got {role!r}"
-                )
+        appended_ids = self._tokenize_appended(updated_messages[len(previous_messages) :], tools=tools)
+        return self._merge_context_token_ids(list(runtime_token_ids), appended_ids)
 
-    def _synthetic_assistant_for_tools(self, tool_messages: list[dict[str, Any]]) -> dict[str, Any]:
-        """An assistant turn whose tool calls the given tool results answer, so the template renders them in place."""
-        tool_calls = [
-            {
-                "id": _tool_call_id_or_dummy(tool_message, index),
-                "type": "function",
-                "function": {"name": _tool_message_name_or_dummy(tool_message), "arguments": {}},
-            }
-            for index, tool_message in enumerate(tool_messages)
-        ]
-        return {
-            "role": "assistant",
-            "content": "",
-            "reasoning_content": _ASSISTANT_REASONING_CONTENT,
-            "tool_calls": tool_calls,
-        }
+    def _tokenize_appended(self, messages: list[dict[str, Any]], *, tools: list[dict[str, Any]] | None) -> list[int]:
+        groups = _append_groups(messages)
+        token_ids: list[int] = []
+        for index, group in enumerate(groups):
+            role = group[0].get("role")
+            if role not in _APPEND_ROLES:
+                raise ValueError(f"Continuous Token can append roles {sorted(_APPEND_ROLES)}, got {role!r}")
+            # The last group is rendered together with the generation prompt, so the history is never
+            # rendered just to learn what add_generation_prompt=True adds.
+            is_last = index == len(groups) - 1
+            if role == "tool":
+                token_ids += self._tokenize_tool_group(group, tools=tools, add_generation_prompt=is_last)
+            elif role == "assistant" and is_last:
+                raise ValueError("Continuous Token messages cannot end with an assistant message")
+            else:
+                token_ids += self._tokenize_single_non_tool(group[0], tools=tools, add_generation_prompt=is_last)
+        return token_ids
+
+    def _tokenize_tool_group(
+        self, tool_messages: list[dict[str, Any]], *, tools: list[dict[str, Any]] | None, add_generation_prompt: bool
+    ) -> list[int]:
+        context = [_SYNTHETIC_SYSTEM_MESSAGE, _SYNTHETIC_USER_MESSAGE, _assistant_calling(tool_messages)]
+        return self._render_delta(context, tool_messages, add_generation_prompt=add_generation_prompt, tools=tools)
+
+    def _tokenize_single_non_tool(
+        self, message: dict[str, Any], *, tools: list[dict[str, Any]] | None, add_generation_prompt: bool
+    ) -> list[int]:
+        context = [_SYNTHETIC_SYSTEM_MESSAGE, _SYNTHETIC_USER_MESSAGE]
+        return self._render_delta(context, [message], add_generation_prompt=add_generation_prompt, tools=tools)
+
+    def _merge_context_token_ids(self, previous_ids: list[int], appended_ids: list[int]) -> MergeResult:
+        """Join the previous tokens and the appended tokens; subclasses fix the junction here."""
+        return MergeResult(token_ids=previous_ids + appended_ids)
+
+    def _render_delta(
+        self,
+        context: list[dict[str, Any]],
+        appended: list[dict[str, Any]],
+        *,
+        add_generation_prompt: bool,
+        tools: list[dict[str, Any]] | None,
+    ) -> list[int]:
+        """Render the context, then the context plus ``appended``, and return the tokens ``appended`` adds."""
+        context_ids = self._render_tokens(context, add_generation_prompt=False, tools=tools)
+        full_ids = self._render_tokens(context + appended, add_generation_prompt=add_generation_prompt, tools=tools)
+        if full_ids[: len(context_ids)] != context_ids:
+            roles = [message.get("role") for message in appended]
+            raise ValueError(f"Continuous Token token-id suffix diff failed for roles: {roles}")
+        return full_ids[len(context_ids) :]
+
+    def _render_tokens(
+        self, messages: list[dict[str, Any]], *, add_generation_prompt: bool, tools: list[dict[str, Any]] | None
+    ) -> list[int]:
+        render_kwargs = dict(add_generation_prompt=add_generation_prompt, tools=tools, **self.chat_template_kwargs)
+        images = message_images(messages)
+        if not images:
+            return apply_chat_template(self.tokenizer, messages, **render_kwargs)
+        if self.encode_images is None:
+            raise ValueError("messages contain images, but this Continuous Token builder has no image encoder")
+        text = render_chat_text(self.tokenizer, messages, **render_kwargs)
+        token_ids, image_inputs = self.encode_images(text, images)
+        self.image_inputs.append(image_inputs)
+        return token_ids
 
 
 class QwenContinuousTokenBuilder(ContinuousTokenBuilder):
@@ -364,22 +178,33 @@ class QwenContinuousTokenBuilder(ContinuousTokenBuilder):
         self._newline_id = int(newline_ids[0])
         self._im_end_id = require_token_id(tokenizer, "<|im_end|>")
 
-    def _merge_context_token_ids(
-        self,
-        runtime_token_ids: list[int],
-        appended_token_ids: list[int],
-        **kwargs: Any,
-    ) -> MergeResult:
-        prefix = list(runtime_token_ids)
-        inserted_token_ids: list[int] = []
-        if prefix and prefix[-1] == self._im_end_id:
-            prefix.append(self._newline_id)
-            inserted_token_ids.append(self._newline_id)
-        return MergeResult(
-            token_ids=prefix + list(appended_token_ids),
-            appended_token_count=len(appended_token_ids),
-            inserted_token_ids=inserted_token_ids,
-        )
+    def _merge_context_token_ids(self, previous_ids: list[int], appended_ids: list[int]) -> MergeResult:
+        if previous_ids and previous_ids[-1] == self._im_end_id:
+            previous_ids = [*previous_ids, self._newline_id]
+        return MergeResult(token_ids=previous_ids + appended_ids)
+
+
+class GLMContinuousTokenBuilder(ContinuousTokenBuilder):
+    """GLM-4.5/4.6/4.7 boundary handling.
+
+    GLM stops generating at ``<|observation|>`` (a tool call) or ``<|user|>``, and the template opens
+    the next tool result or user message with that same token. The appended group renders its own
+    opening token, so the junction keeps exactly one:
+    - the same token: drop it from the appended tokens, so the generated token stays as sampled;
+    - a different one, e.g. the model called a tool but the next message is from the user: replace the
+      generated token (``removed_prefix_token_count = 1``).
+    """
+
+    def __init__(self, tokenizer: Any, **kwargs: Any):
+        super().__init__(tokenizer, **kwargs)
+        self._boundary_ids = frozenset(require_token_id(tokenizer, token) for token in ("<|observation|>", "<|user|>"))
+
+    def _merge_context_token_ids(self, previous_ids: list[int], appended_ids: list[int]) -> MergeResult:
+        if not previous_ids or previous_ids[-1] not in self._boundary_ids:
+            return MergeResult(token_ids=previous_ids + appended_ids)
+        if appended_ids and appended_ids[0] == previous_ids[-1]:
+            return MergeResult(token_ids=previous_ids + appended_ids[1:])
+        return MergeResult(token_ids=previous_ids[:-1] + appended_ids, removed_prefix_token_count=1)
 
 
 def require_token_id(tokenizer: Any, token: str) -> int:
@@ -393,13 +218,25 @@ def require_token_id(tokenizer: Any, token: str) -> int:
     return token_id
 
 
-def _tool_message_name_or_dummy(tool_message: dict[str, Any]) -> str:
-    if tool_message.get("name"):
-        return str(tool_message["name"])
-    return _DUMMY_TOOL_NAME
+def _append_groups(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    """Consecutive tool results form one group (they answer one assistant turn); any other message is a group alone."""
+    groups: list[list[dict[str, Any]]] = []
+    for message in messages:
+        if message.get("role") == "tool" and groups and groups[-1][0].get("role") == "tool":
+            groups[-1].append(message)
+        else:
+            groups.append([message])
+    return groups
 
 
-def _tool_call_id_or_dummy(tool_message: dict[str, Any], index: int) -> Any:
-    if tool_message.get("tool_call_id") is not None:
-        return tool_message["tool_call_id"]
-    return f"continuous_token_call_{index}"
+def _assistant_calling(tool_messages: list[dict[str, Any]]) -> dict[str, Any]:
+    """An assistant turn whose tool calls the given tool results answer, so the template renders them in place."""
+    tool_calls = [
+        {
+            "id": f"continuous_token_call_{index}" if message.get("tool_call_id") is None else message["tool_call_id"],
+            "type": "function",
+            "function": {"name": message.get("name") or "continuous_token_tool", "arguments": {}},
+        }
+        for index, message in enumerate(tool_messages)
+    ]
+    return {"role": "assistant", "content": "", "reasoning_content": "reasoning", "tool_calls": tool_calls}

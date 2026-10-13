@@ -1,9 +1,9 @@
 """Miles integration: launch the Router and the replicas, wait for them, and run one episode per sample.
 
-Miles reaches this module only when ``--use-agent-server`` is set: from the process specs
-(``miles/ray/specs/entrypoint.py``) and from the two rollout readiness points next to
-``wait_session_server_ready``. Rollout uses
-``--custom-generate-function-path agent_server.miles_adapter.generate``.
+Rollout uses ``--custom-generate-function-path agent_server.miles_adapter.generate``, which also
+registers the agent server's flags. With ``--use-agent-server`` set, Miles calls in from the process
+specs (``miles/ray/specs/entrypoint.py``) and from the rollout executor's readiness point next to
+``wait_session_server_ready``.
 """
 
 import asyncio
@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import sglang_router
 
 from agent_server.router import RouterConfig
 from agent_server.server import ReplicaConfig
@@ -58,6 +59,7 @@ _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
 
 def specs_agent_server(args) -> list[CommandWorkerSpec]:
     """One Router plus ``--agent-server-workers`` replicas, started and stopped by Miles' worker manager."""
+    _check_args(args)
     return [_spec_router(args), _spec_replicas(args)]
 
 
@@ -118,6 +120,7 @@ def _spec_replicas(args) -> CommandWorkerSpec:
             chat_template_path=args.chat_template_path,
             apply_chat_template_kwargs=args.apply_chat_template_kwargs,
             timeout=args.miles_router_timeout,
+            backend_max_retries=args.agent_server_max_retries,
             use_rollout_routing_replay=args.use_rollout_routing_replay,
             use_addition_r3=getattr(args, "pause_generation_mode", None) != "retract",
             num_layers=getattr(args, "num_layers", None),
@@ -166,7 +169,6 @@ async def generate(input: GenerateFnInput) -> GenerateFnOutput:
     decodes the reply with Miles' samples codec.
     """
     args = input.args
-    assert not args.partial_rollout, "Partial rollout is not supported"
     handle = await _create_session(
         args.agent_server_router_url, evaluation=input.evaluation, sampling_params=input.sampling_params
     )
@@ -220,8 +222,62 @@ async def generate(input: GenerateFnInput) -> GenerateFnOutput:
     return GenerateFnOutput(samples=samples)
 
 
-# Registers --custom-agent-function-path, --custom-agent-function-mode and --max-seq-len.
-generate.add_arguments = session_server_generate.add_arguments
+def _add_arguments(parser) -> None:
+    # --custom-agent-function-path, --custom-agent-function-mode and --max-seq-len, as the session server takes them.
+    session_server_generate.add_arguments(parser)
+    parser.add_argument("--use-agent-server", action="store_true", help="Serve agent sessions with agent_server/.")
+    parser.add_argument("--agent-server-workers", type=int, default=1, help="Number of replica processes.")
+    parser.add_argument(
+        "--agent-server-port",
+        type=int,
+        default=None,
+        help="Base port of the replicas; replica i listens on this port plus i. Defaults to a dynamic port.",
+    )
+    parser.add_argument(
+        "--agent-server-max-retries",
+        type=int,
+        default=3,
+        help="Times a replica sends a turn again after a transport error or a 5xx reply, with exponential "
+        "backoff, before the error goes to the agent.",
+    )
+    # Otherwise SGLang's chat API fills the sampling fields a request leaves unset from the checkpoint's
+    # generation_config.json (Qwen2.5-VL: repetition_penalty 1.05), which the trainer never reproduces.
+    parser.set_defaults(sglang_sampling_defaults="openai")
+
+
+generate.add_arguments = _add_arguments
+
+
+def _check_args(args) -> None:
+    """Refuse at startup what the agent server cannot serve correctly."""
+    if args.use_session_server:
+        raise ValueError("--use-agent-server and --use-session-server cannot be used together")
+    if not args.hf_checkpoint:
+        raise ValueError("--use-agent-server requires --hf-checkpoint (the replicas load its tokenizer)")
+    if args.agent_server_workers < 1 or args.agent_server_max_retries < 0:
+        raise ValueError("--agent-server-workers must be at least 1 and --agent-server-max-retries at least 0")
+    if args.sglang_sampling_defaults != "openai":
+        raise ValueError("--use-agent-server needs --sglang-sampling-defaults openai: the rollout args set sampling")
+    # Continuous token runs in SGLang and needs prefix_message_count. MilesRouter forwards the request body as
+    # is; the Rust sglang_router keeps the field only when built with sglang_patch/build_router.sh.
+    if not args.use_miles_router and not getattr(sglang_router, "FORWARDS_PREFIX_MESSAGE_COUNT", False):
+        raise ValueError(
+            "--use-agent-server needs a router that forwards prefix_message_count: build sglang-router with "
+            "agent_server/sglang_patch/build_router.sh, or pass --use-miles-router"
+        )
+    unsupported = [
+        flag
+        for enabled, flag in (
+            (args.partial_rollout, "--partial-rollout"),
+            (args.use_rollout_indexer_replay, "--use-rollout-indexer-replay"),
+            (args.rollout_top_p < 1.0 or args.rollout_top_k > 0, "--rollout-top-p < 1 / --rollout-top-k"),
+            (args.rollout_top_logprobs_num, "--rollout-top-logprobs-num"),
+            (args.group_rm, "--group-rm"),
+        )
+        if enabled
+    ]
+    if unsupported:
+        raise ValueError(f"--use-agent-server does not support {', '.join(unsupported)}")
 
 
 async def _create_session(router_url: str, *, evaluation: bool, sampling_params: dict | None) -> dict[str, Any]:

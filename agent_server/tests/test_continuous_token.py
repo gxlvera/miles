@@ -1,4 +1,4 @@
-"""The Qwen builder (which runs inside SGLang) against full chat-template renders of the same conversation.
+"""The Qwen and GLM builders (which run inside SGLang) against full chat-template renders of the same conversation.
 
 Each conversation only appends where its template is append-only, so the incremental prompt must
 equal the full render: tool results after the last user message for Qwen3.5 (whose template drops
@@ -10,7 +10,11 @@ import os
 
 import pytest
 
-from agent_server.sglang_patch.continuous_token import QwenContinuousTokenBuilder, create_builder
+from agent_server.sglang_patch.continuous_token import (
+    GLMContinuousTokenBuilder,
+    QwenContinuousTokenBuilder,
+    create_builder,
+)
 from agent_server.sglang_patch.continuous_token.chat_template import apply_chat_template
 
 TOOLS = [
@@ -62,13 +66,12 @@ def test_incremental_prompt_equals_full_render(tokenizer):
 
         merge = builder.merge_context_tokens(previous, messages, tokens, tools=TOOLS)
         assert merge.removed_prefix_token_count == 0
-        assert merge.inserted_token_ids == tokenizer.encode("\n", add_special_tokens=False)
         assert merge.token_ids == apply_chat_template(tokenizer, messages, add_generation_prompt=True, tools=TOOLS)
         tokens = merge.token_ids
 
 
 def test_user_and_parallel_tool_appends_equal_full_render():
-    """A tau2-style dialogue: a user reply, two parallel tool results, a tool result and a user message together."""
+    """A customer-service dialogue: a user reply, two parallel tool results, a tool result and a user message together."""
     transformers = pytest.importorskip("transformers")
     name = os.environ.get("AGENT_SERVER_TEST_INSTRUCT_TOKENIZER", "Qwen/Qwen3-4B-Instruct-2507")
     try:
@@ -113,4 +116,75 @@ def test_user_and_parallel_tool_appends_equal_full_render():
             previous, messages, tokens, tools=TOOLS
         )
         assert merge.token_ids == apply_chat_template(tokenizer, messages, add_generation_prompt=True, tools=TOOLS)
+        tokens = merge.token_ids
+
+
+@pytest.mark.parametrize(
+    "name, model_type, template_kwargs, reasoning",
+    [
+        # clear_thinking=False keeps earlier thinking, so the template stays append-only across user messages.
+        ("zai-org/GLM-4.7-Flash", "glm4_moe_lite", {"clear_thinking": False}, True),
+        # GLM-4.5 drops earlier thinking once a user message arrives; without thinking it is append-only.
+        ("zai-org/GLM-4.5-Air", "glm4_moe", {"enable_thinking": False}, False),
+    ],
+)
+def test_glm_appends_equal_full_render(name, model_type, template_kwargs, reasoning):
+    """GLM stops at <|observation|> or <|user|>; the junction keeps one of them, whichever the next message opens with."""
+    transformers = pytest.importorskip("transformers")
+    try:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(name, local_files_only=True)
+    except OSError:
+        pytest.skip(f"tokenizer {name} is not available locally")
+    observation, user = tokenizer.convert_tokens_to_ids(["<|observation|>", "<|user|>"])
+
+    def render(messages, add_generation_prompt):
+        return apply_chat_template(
+            tokenizer, messages, add_generation_prompt=add_generation_prompt, tools=TOOLS, **template_kwargs
+        )
+
+    def model_output(history, assistant):
+        """The rendered assistant turn plus the stop token GLM generates after it."""
+        prompt = render(history, True)
+        full = render([*history, assistant], False)
+        assert full[: len(prompt)] == prompt
+        return full[len(prompt) :] + [observation if assistant.get("tool_calls") else user]
+
+    def assistant(content, call_id=None):
+        message = {"role": "assistant", "content": content}
+        if reasoning:
+            message["reasoning_content"] = f"I should answer: {content or call_id}."
+        if call_id:
+            message["tool_calls"] = [
+                {"id": call_id, "type": "function", "function": {"name": "env_step", "arguments": {"command": "ls"}}}
+            ]
+        return message
+
+    script = [
+        # stopped at <|observation|>, the tool result opens with it
+        (assistant("", "c1"), [{"role": "tool", "tool_call_id": "c1", "content": "a.txt"}], 0),
+        # stopped at <|user|>, the user message opens with it
+        (assistant("There is a.txt."), [{"role": "user", "content": "Call it again."}], 0),
+        # stopped at <|observation|>, but the user interrupts: the generated token is replaced
+        (assistant("", "c2"), [{"role": "user", "content": "Never mind."}], 1),
+        # a tool result and a user message together
+        (
+            assistant("", "c3"),
+            [{"role": "tool", "tool_call_id": "c3", "content": "b.txt"}, {"role": "user", "content": "Done?"}],
+            0,
+        ),
+    ]
+    messages = [{"role": "system", "content": "You use a shell."}, {"role": "user", "content": "List files."}]
+    tokens = create_builder(
+        tokenizer, model_type=model_type, chat_template_kwargs=template_kwargs
+    ).build_initial_tokens(messages, tools=TOOLS)
+    assert tokens == render(messages, True)
+    for reply, appended, removed in script:
+        tokens = tokens + model_output(messages, reply)
+        previous = [*messages, reply]
+        messages = [*previous, *appended]
+        builder = create_builder(tokenizer, model_type=model_type, chat_template_kwargs=template_kwargs)
+        assert isinstance(builder, GLMContinuousTokenBuilder)
+        merge = builder.merge_context_tokens(previous, messages, tokens, tools=TOOLS)
+        assert merge.removed_prefix_token_count == removed
+        assert merge.token_ids == render(messages, True)
         tokens = merge.token_ids

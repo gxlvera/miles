@@ -116,7 +116,6 @@ def harbor_env_vars(args) -> dict[str, str]:
         "HARBOR_VERIFIER_TIMEOUT_SEC",
         "HARBOR_ENV_BUILD_TIMEOUT_MULTIPLIER",
         "HARBOR_AGENT_ALLOWED_HOSTS",
-        "HARBOR_CLAUDE_CODE_DISALLOWED_TOOLS",
     ):
         if value := os.environ.get(var, "").strip():
             env[var] = value

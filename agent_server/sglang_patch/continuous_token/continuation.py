@@ -11,13 +11,19 @@ from typing import Any
 
 import torch
 
-from .builder import ContinuousTokenBuilder, QwenContinuousTokenBuilder
+from .builder import ContinuousTokenBuilder, GLMContinuousTokenBuilder, QwenContinuousTokenBuilder
 from .media import load_image, message_images
 
 # Root HF ``config.json`` model_type values whose templates end a turn with ``<|im_end|>\n``.
 _QWEN_MODEL_TYPES = frozenset(
     {"qwen2", "qwen3", "qwen3_moe", "qwen3_5", "qwen3_5_moe", "qwen2_vl", "qwen2_5_vl", "qwen3_vl", "qwen3_vl_moe"}
 )
+# GLM-4.5/4.6/4.7 (glm4_moe) and GLM-4.7-Flash (glm4_moe_lite): generation stops at the next message's opening token.
+_GLM_MODEL_TYPES = frozenset({"glm4_moe", "glm4_moe_lite"})
+_BUILDERS_BY_MODEL_TYPE: dict[str, type[ContinuousTokenBuilder]] = {
+    **dict.fromkeys(_QWEN_MODEL_TYPES, QwenContinuousTokenBuilder),
+    **dict.fromkeys(_GLM_MODEL_TYPES, GLMContinuousTokenBuilder),
+}
 # Processor outputs that are text, not image inputs.
 _TEXT_KEYS = frozenset({"input_ids", "attention_mask", "mm_token_type_ids"})
 
@@ -38,7 +44,7 @@ def create_builder(
     processor: Any = None,
 ) -> ContinuousTokenBuilder:
     """A builder for one request. With a processor, groups with images are encoded together with their images."""
-    builder_cls = QwenContinuousTokenBuilder if model_type in _QWEN_MODEL_TYPES else ContinuousTokenBuilder
+    builder_cls = _BUILDERS_BY_MODEL_TYPE.get(model_type, ContinuousTokenBuilder)
     encode_images = None if processor is None else lambda text, refs: _encode_with_images(processor, text, refs)
     return builder_cls(tokenizer, chat_template_kwargs=chat_template_kwargs, encode_images=encode_images)
 

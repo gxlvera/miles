@@ -1,0 +1,27 @@
+diff --git a/bindings/python/src/sglang_router/__init__.py b/bindings/python/src/sglang_router/__init__.py
+index 9c7fa20..d15e1e8 100644
+--- a/bindings/python/src/sglang_router/__init__.py
++++ b/bindings/python/src/sglang_router/__init__.py
+@@ -1,3 +1,6 @@
+ from sglang_router.version import __version__
+ 
++# Built with agent_server/sglang_patch/router.patch: chat requests keep prefix_message_count.
++FORWARDS_PREFIX_MESSAGE_COUNT = True
++
+ __all__ = ["__version__"]
+diff --git a/src/protocols/chat.rs b/src/protocols/chat.rs
+index 521f808..77b229c 100644
+--- a/src/protocols/chat.rs
++++ b/src/protocols/chat.rs
+@@ -389,6 +389,11 @@ pub struct ChatCompletionRequest {
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub input_ids: Option<Vec<u32>>,
+ 
++    /// How many of `messages` the `input_ids` already cover: SGLang renders only the rest onto them
++    /// (agent_server continuous token)
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub prefix_message_count: Option<u32>,
++
+     /// Stop regex pattern(s)
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub stop_regex: Option<StringOrArray>,

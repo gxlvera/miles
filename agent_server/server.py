@@ -2,8 +2,8 @@
 
 A chat request goes prepare (pick the parent turn) -> generate on the inference backend, which
 renders the new messages onto the parent's tokens with continuous token (no session state is
-touched while waiting) -> commit (store the new turn). Collect exports one Miles Sample per leaf, runs the configured picker and
-postprocessor hooks, and encodes the result with Miles' samples codec.
+touched while waiting) -> commit (store the new turn). Collect exports one Miles Sample per leaf,
+runs the configured picker and postprocessor hooks, and encodes the result with Miles' samples codec.
 
     POST   /sessions                            create (called by the Router)
     POST   /sessions/{id}/v1/chat/completions   OpenAI chat, for the agent
@@ -58,6 +58,8 @@ class ReplicaConfig(FrozenStrictBaseModel):
     chat_template_path: str | None = None
     apply_chat_template_kwargs: dict[str, Any] | None = None
     timeout: float | None = None
+    # Times a turn is sent again after a transport error or a 5xx reply before the error goes to the agent.
+    backend_max_retries: int = 3
     use_rollout_routing_replay: bool = False
     # Every pause mode except "retract" keeps earlier routing rows valid, so the backend only has to
     # return the rows a turn adds.
@@ -127,16 +129,7 @@ class Replica:
             **(request.get("chat_template_kwargs") or {}),
         }
         prepared = session.manager.prepare(messages, context_key=context_key(tools, template_kwargs))
-
-        if prepared.parent_id is None and session.manager.nodes and not session.warned_unmatched:
-            _warn_unmatched_history(
-                session, messages, context_changed=session.last_context_key != prepared.context_key
-            )
-        elif prepared.parent_id is not None and not session.warned_branch:
-            latest = session.manager.nodes[-1]
-            if prepared.parent_id != latest.node_id and not latest.truncated:
-                _warn_branch(session, messages, latest_node_id=latest.node_id)
-        session.last_context_key = prepared.context_key
+        _log_history_mismatch(session, messages, parent_id=prepared.parent_id, context_key=prepared.context_key)
         r3_row_start = self._r3_row_start(session, reusable_rows=prepared.reusable_r3_rows)
         # SGLang refuses with 400 what continuous token cannot render, e.g. an appended role it does not support.
         body = build_request(
@@ -146,7 +139,13 @@ class Replica:
             chat_template_kwargs=template_kwargs,
             r3_row_start=r3_row_start,
         )
-        reply = await generate(self.client, self.config.backend_url, body, routing_key=session_id)
+        reply = await generate(
+            self.client,
+            self.config.backend_url,
+            body,
+            routing_key=session_id,
+            max_retries=self.config.backend_max_retries,
+        )
         generation = parse_generation(
             reply,
             num_parent_tokens=len(prepared.parent_tokens),
@@ -211,92 +210,60 @@ class Replica:
         return reusable_rows if self.config.use_addition_r3 else 0
 
 
-def _warn_unmatched_history(session: Session, messages: list[dict[str, Any]], *, context_changed: bool) -> None:
-    """Once per session: a request that already has assistant turns matched none of the stored turns.
+def _log_history_mismatch(
+    session: Session, messages: list[dict[str, Any]], *, parent_id: int | None, context_key: bytes
+) -> None:
+    """Log, once per session and without message text, a replayed history that leaves the latest turn.
 
-    Still correct (it becomes a new root rendered from scratch), but prefix reuse is lost. Logs the shape
-    of the first replayed assistant message next to the first stored one, without message text.
+    Still correct (a new root or a new branch), but it costs prefix reuse, so it is worth seeing why.
     """
-    replayed = next((message for message in messages if message.get("role") == "assistant"), None)
-    if replayed is None:
-        return
-    session.warned_unmatched = True
-    stored_path = session.manager.nodes[0].delta_messages
-    first_diff = next(
-        (
-            index
-            for index, (new, old) in enumerate(zip(messages, stored_path, strict=False))
-            if message_fingerprint(new) != message_fingerprint(old)
-        ),
-        None,
-    )
-    detail = {}
-    if first_diff is not None:
-        detail = {"replayed": _message_shape(messages[first_diff]), "stored": _message_shape(stored_path[first_diff])}
-        new_text, old_text = (
-            content if isinstance(content := message.get("content"), str) else json.dumps(content, default=str)
-            for message in (messages[first_diff], stored_path[first_diff])
-        )
-        cut = next((i for i, (a, b) in enumerate(zip(new_text, old_text, strict=False)) if a != b), None)
-        cut = min(len(new_text), len(old_text)) if cut is None else cut
-        detail["first_differing_char"] = cut
-        detail["replayed_text"] = new_text[max(0, cut - 80) : cut + 220]
-        detail["stored_text"] = old_text[max(0, cut - 80) : cut + 220]
-    logger.warning(
-        "session %s: request with %d messages matched no stored turn; tools/template changed=%s; "
-        "first differing message index vs the first stored turn=%s %s",
-        session.session_id,
-        len(messages),
-        context_changed,
-        first_diff,
-        detail,
-    )
+    if session.manager.nodes:
+        latest = session.manager.nodes[-1]
+        if parent_id is None and not session.warned_unmatched and any(m.get("role") == "assistant" for m in messages):
+            session.warned_unmatched = True
+            changed = "tools/template changed" if context_key != session.last_context_key else "same tools/template"
+            _warn_first_difference(session, messages, latest, f"matched no stored turn ({changed})")
+        elif (
+            parent_id is not None
+            and parent_id != latest.node_id
+            and not latest.truncated
+            and not session.warned_branch
+        ):
+            session.warned_branch = True
+            _warn_first_difference(session, messages, latest, "branches off the latest turn")
+    session.last_context_key = context_key
 
 
-def _warn_branch(session: Session, messages: list[dict[str, Any]], *, latest_node_id: int) -> None:
-    """Once per session: a request continues an older turn instead of the latest one (a new branch)."""
-    session.warned_branch = True
-    latest_path = [message for node in session.manager.path(latest_node_id) for message in node.delta_messages]
-    first_diff = next(
-        (
-            index
-            for index, (new, old) in enumerate(zip(messages, latest_path, strict=False))
-            if message_fingerprint(new) != message_fingerprint(old)
-        ),
-        min(len(messages), len(latest_path)),
+def _warn_first_difference(session: Session, messages: list[dict[str, Any]], latest, what: str) -> None:
+    latest_path = [message for node in session.manager.path(latest.node_id) for message in node.delta_messages]
+    pairs = list(zip(messages, latest_path, strict=False))
+    index = next(
+        (i for i, (new, old) in enumerate(pairs) if message_fingerprint(new) != message_fingerprint(old)), None
     )
-    detail = {}
-    if first_diff < min(len(messages), len(latest_path)):
-        new, old = messages[first_diff], latest_path[first_diff]
-        detail = {"replayed": _message_shape(new), "stored": _message_shape(old)}
-        for name, message in (("replayed_text", new), ("stored_text", old)):
-            content = message.get("content")
-            detail[name] = (content if isinstance(content, str) else json.dumps(content, default=str))[:400]
+    detail = (
+        {}
+        if index is None
+        else {"replayed": _message_shape(pairs[index][0]), "stored": _message_shape(pairs[index][1])}
+    )
     logger.warning(
-        "session %s: request with %d messages branches off the latest turn (latest path has %d messages); "
-        "first differing index=%d %s",
+        "session %s: a request with %d messages %s; the latest turn's path has %d messages, first difference at %s %s",
         session.session_id,
         len(messages),
+        what,
         len(latest_path),
-        first_diff,
+        index,
         detail,
     )
 
 
 def _message_shape(message: dict[str, Any]) -> dict[str, Any]:
-    calls = message.get("tool_calls") or []
+    """What tells two messages apart, without their text."""
+    content = message.get("content")
     return {
         "keys": sorted(message),
-        "content_len": len(message.get("content") or "") if isinstance(message.get("content"), str) else "list",
+        "content_len": len(content) if isinstance(content, str) else "blocks",
         "reasoning_len": len(message.get("reasoning_content") or ""),
-        "tool_calls": [
-            (
-                (call.get("function") or {}).get("name"),
-                type((call.get("function") or {}).get("arguments")).__name__,
-                len(str((call.get("function") or {}).get("arguments"))),
-            )
-            for call in calls
-        ],
+        "tool_calls": [(call.get("function") or {}).get("name") for call in message.get("tool_calls") or []],
         "fingerprint": message_fingerprint(message).hex()[:8],
     }
 
@@ -416,8 +383,8 @@ def run_replica(config: ReplicaConfig) -> None:
     tokenizer = load_tokenizer(
         config.hf_checkpoint, chat_template_path=config.chat_template_path, trust_remote_code=True
     )
-    # Idle connections expire before uvicorn's 5 s keep-alive (MilesRouter) closes them on the other side;
-    # reusing one the server is closing fails the request with a ReadError.
+    # Idle connections expire before the router's keep-alive (5 s under uvicorn) closes them on its side;
+    # reusing one the router is closing fails the request with a ReadError.
     client = httpx.AsyncClient(
         limits=httpx.Limits(max_connections=1024, keepalive_expiry=2.0), timeout=httpx.Timeout(config.timeout)
     )

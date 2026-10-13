@@ -2699,28 +2699,6 @@ def get_miles_extra_args_provider(add_custom_arguments=None):
                 "Default: exactly-once completion masking + rewards keyed by "
                 "response id.",
             )
-            parser.add_argument(
-                "--use-agent-server",
-                action="store_true",
-                default=False,
-                help="Serve agent sessions with agent_server/: a Router plus replica processes that build prompts "
-                "with continuous token and store turns as incremental deltas. "
-                "Use with --custom-generate-function-path agent_server.miles_adapter.generate. The sample picker "
-                "and postprocessor come from --session-sample-picker-path/--session-sample-postprocessor-path.",
-            )
-            parser.add_argument(
-                "--agent-server-workers",
-                type=int,
-                default=1,
-                help="Number of agent_server replica processes.",
-            )
-            parser.add_argument(
-                "--agent-server-port",
-                type=int,
-                default=None,
-                help="Base port for the agent_server replicas; replica i listens on this port plus i. "
-                "Defaults to a dynamically allocated port.",
-            )
             return parser
 
         def add_user_provided_function_arguments(parser):
@@ -3308,36 +3286,6 @@ def miles_validate_args(args):
             raise ValueError(
                 f"--use-session-server v2 does not support {', '.join(unsupported)}; v2 returns list[Sample]"
             )
-
-    if args.use_agent_server:
-        if args.use_session_server:
-            raise ValueError("--use-agent-server and --use-session-server cannot be used together")
-        if args.agent_server_workers < 1:
-            raise ValueError("--agent-server-workers must be at least 1")
-        if not args.hf_checkpoint:
-            raise ValueError("--use-agent-server requires --hf-checkpoint (the replicas load its tokenizer)")
-        if not args.use_miles_router:
-            # Continuous token runs in SGLang and needs prefix_message_count, which the Rust sglang_router drops.
-            raise ValueError("--use-agent-server requires --use-miles-router, which forwards request fields unchanged")
-        # Overrides --sglang-sampling-defaults: agent server rollouts go through SGLang's chat API, which under
-        # "model" fills the sampling fields a request leaves unset from the checkpoint's generation_config.json
-        # (Qwen2.5-VL: repetition_penalty 1.05). The trainer reproduces none of them, so the rollout args must
-        # be the only source of sampling settings.
-        args.sglang_sampling_defaults = "openai"
-        unsupported = [
-            flag
-            for enabled, flag in (
-                (args.partial_rollout, "--partial-rollout"),
-                (args.use_rollout_indexer_replay, "--use-rollout-indexer-replay"),
-                # the condition that turns on sampling-support replay, which is derived further below
-                (args.rollout_top_p < 1.0 or args.rollout_top_k > 0, "--rollout-top-p < 1 / --rollout-top-k"),
-                (args.rollout_top_logprobs_num, "--rollout-top-logprobs-num"),
-                (args.group_rm, "--group-rm"),
-            )
-            if enabled
-        ]
-        if unsupported:
-            raise ValueError(f"--use-agent-server does not support {', '.join(unsupported)}")
 
     if args.use_session_server and args.use_rollout_routing_replay and args.pause_generation_mode == "retract":
         logger.warning(

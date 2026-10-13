@@ -37,7 +37,6 @@ data and weights around.
 Not fully verified — for experimental and development use.
 
 - **[agentenv](./experimental/agentenv)**: Rollouts against AgentENV, a self-hosted platform running agent sandboxes on Firecracker microVMs.
-- **[alfworld](./experimental/alfworld)**: A whitebox TextWorld tool agent through Session Server v2, with a Qwen3.5-4B training launcher.
 - **[DrGRPO](./experimental/DrGRPO)**: Custom reducer for Dr.GRPO algorithm.
 - **[eval](./experimental/eval)**: Documentation and setup for evaluation environments using NeMo-Skills.
 - **[eval_multi_task](./experimental/eval_multi_task)**: Example for supporting OOD evaluation tasks, e.g., GPQA, IFBench.

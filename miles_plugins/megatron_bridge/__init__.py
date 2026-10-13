@@ -68,13 +68,6 @@ try:
 except Exception as _e:  # best-effort; Qwen3-VL may be unavailable in some envs
     logger.warning("miles Qwen3-VL THD packed mRoPE patch not applied: %s", _e)
 
-try:
-    from miles_plugins.models.qwen2_5_vl import install_qwen2_5_vl_forward_patch
-
-    install_qwen2_5_vl_forward_patch()
-except Exception as _e:  # best-effort, like the Qwen3-VL patch above
-    logger.warning("miles Qwen2.5-VL forward patch not applied: %s", _e)
-
 
 # Model-specific bridge subclasses. Each submodule self-installs on import.
 # Keep imports here so merely importing ``miles_plugins.megatron_bridge`` is

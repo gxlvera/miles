@@ -1,2 +1,0 @@
-alfworld==0.4.2
-textworld==1.7.0

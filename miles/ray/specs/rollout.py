@@ -35,12 +35,12 @@ def spec_rollout_executor(args) -> ServeWorkerSpec:
                 else None
             ),
             inference_controller_provider=compute_inference_controller_provider(args, capability=ctx.capability),
-            agent_server_router_provider=compute_agent_server_router_provider(args, capability=ctx.capability),
+            agent_server_router_provider=_compute_agent_server_router_provider(args, capability=ctx.capability),
         ),
     )
 
 
-def compute_agent_server_router_provider(args, *, capability: BackendCapability) -> BaseWorkerProvider | None:
+def _compute_agent_server_router_provider(args, *, capability: BackendCapability) -> BaseWorkerProvider | None:
     if not getattr(args, "use_agent_server", False):
         return None
     # agent_server/ is a top-level folder outside the miles package; import it only when it is used.
