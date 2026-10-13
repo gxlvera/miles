@@ -32,7 +32,7 @@ The agent server is one Router plus N replicas. Each replica registers with the 
 
 1. Miles asks the Router to create a session.
 2. The Router picks a replica, creates the session on it, and returns the session id and that replica's URL to Miles.
-3. Miles injects the URL into the agent's task runtime. From then on, the task runtime sends every request directly to that replica; the Router is no longer involved. 
+3. Miles injects the URL into the agent harness. From then on, the agent harness sends every request directly to that replica; the Router is no longer involved. 
 4. The agent server replica calls SGLang for generation, SGLang conducts multimodal object download (if need) and tokenization.
 5. agent server send back generation result to harness layer, and that loop continues.
 6. When a task is done, the session is closed and miles pulls trajectory data from agent server.
