@@ -47,7 +47,7 @@ The agent server is one Router plus N replicas. Each replica registers with the 
 
 Ablation: 64 Claude Code sessions on SWE-Gym (4 tasks × 16), Qwen3.5-4B, 8×H100, 64K context; one rollout batch trained both ways for one step (reproduce with §6.3).
 (Please click the blue text to jump to wandb log)
-| | [Per turn](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/proxy-per-turn-01) | [Turn merge](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/proxy-merge-01) |
+| | [Per turn](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable-original-run/runs/proxy-per-turn-01) | [Turn merge](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable-original-run/runs/proxy-merge-01) |
 | --- | ---: | ---: |
 | Samples | 4,439 | 64 |
 | Training tokens | 105.3 M | 2.71 M |
@@ -199,7 +199,7 @@ modal run $APP::smoke     # 3 steps, with an evaluation and a checkpoint save
 modal run --detach $APP::train --launcher-args "--num-rollout 30"
 ```
 
-Results of a 30-step run ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/lo9db6gi)):
+Results of a 30-step run ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable-original-run/runs/lo9db6gi)):
 
 | Chart | What it shows |
 | --- | --- |
@@ -225,7 +225,7 @@ python agent_server/examples/swegym/run_qwen3_5_4b_swegym.py --model-dir $MODELS
 
 The per-turn vs. turn-merge ablation of §3.1 is the same launcher for one step, once per way: `--num-rollout 1 --no-fully-async --no-save-optimizer --extra-args '--rollout-function-path paired_ablation.Baseline'` (then `paired_ablation.MergedReplay`), each with `--custom-rollout-log-function-path paired_ablation.log_rollout`. The baseline collects one batch and freezes it under `/workspace/proxy-turn-ablation/paired-data`; the merged way trains on the same frozen trajectories.
 
-**40-step end-to-end run** ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable/runs/merged-proxy-40-02)). To check the whole stack end to end, I trained the setup above for 40 steps: 64 episodes per step, fully async with weights at most one version stale. All 40 updates were valid, in 7.5 hours. The run used an earlier revision of this agent server, before tokenization moved into SGLang (§4).
+**40-step end-to-end run** ([W&B](https://forge.coreweave.com/wandb/xiaoleg-carnegie-mellon-university/take-home-deliverable-original-run/runs/merged-proxy-40-02)). To check the whole stack end to end, I trained the setup above for 40 steps: 64 episodes per step, fully async with weights at most one version stale. All 40 updates were valid, in 7.5 hours. The run used an earlier revision of this agent server, before tokenization moved into SGLang (§4).
 
 | Chart | What it shows |
 | --- | --- |
